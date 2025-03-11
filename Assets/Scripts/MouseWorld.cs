@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MouseWorld : MonoBehaviour
@@ -16,6 +17,16 @@ public class MouseWorld : MonoBehaviour
     void Update()
     {
         transform.position = MouseWorld.GetPosition();
+    }
+
+    public static MouseWorld GetInstance()
+    {
+        return instance;
+    }
+
+    public LayerMask GetLayerMask()
+    {
+        return mousePlanetLayerMask;
     }
 
     public static Vector3 GetPosition()

@@ -1,4 +1,7 @@
+using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class Vehicle : MonoBehaviour
 {
@@ -18,6 +21,10 @@ public class Vehicle : MonoBehaviour
     private Vector3 targetPosition;
     private bool shouldMove = false;
 
+    private string sceneName;
+
+    private float yOffset = 0.5f;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -27,11 +34,14 @@ public class Vehicle : MonoBehaviour
         maxForce = 0.1f;
         mass = 1f;
         vehicles = GameObject.FindObjectsOfType<Vehicle>();
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        sceneName = currentScene.name;
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && sceneName == "WorldMap")
         {
             targetPosition = MouseWorld.GetPosition();
             shouldMove = true;
@@ -62,8 +72,11 @@ public class Vehicle : MonoBehaviour
         Vector3 seekForce = this.Seek(targetPosition);
 
         seekForce.y = 0;
-
         seekForce *= 0.5f;
+
+        Physics.Raycast(this.transform.position + new Vector3(0, 5f, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
+        Debug.Log(this.transform.position);
+        this.transform.position = new Vector3(this.transform.position.x, raycastHit.point.y, this.transform.position.z);
 
         this.ApplyForce(seekForce);
     }
