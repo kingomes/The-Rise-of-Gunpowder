@@ -25,6 +25,8 @@ public class Vehicle : MonoBehaviour
 
     private float yOffset = 0.5f;
 
+    private Collider collider;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -74,7 +76,10 @@ public class Vehicle : MonoBehaviour
         seekForce.y = 0;
         seekForce *= 0.5f;
 
-        Physics.Raycast(this.transform.position + new Vector3(0, 5f, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
+        collider = GetComponent<Collider>();
+        Vector3 size = collider.bounds.size;
+
+        Physics.Raycast(this.transform.position + new Vector3(0, size.y / 2, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
         Debug.Log(this.transform.position);
         this.transform.position = new Vector3(this.transform.position.x, raycastHit.point.y, this.transform.position.z);
 
