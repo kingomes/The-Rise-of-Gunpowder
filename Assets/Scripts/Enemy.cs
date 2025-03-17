@@ -17,8 +17,6 @@ public class Enemy : MonoBehaviour {
     [SerializeField] private Enemy[] enemies;
     [SerializeField] private GameObject player;
 
-    private Vector3 targetPosition;
-
     void Start() 
     {
         acceleration = Vector3.zero;

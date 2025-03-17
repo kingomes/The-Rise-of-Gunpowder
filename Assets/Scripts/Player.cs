@@ -27,6 +27,9 @@ public class Vehicle : MonoBehaviour
 
     private Collider collider;
 
+    [SerializeField] private MapGenerator mapGenerator;
+    [SerializeField] private string[] walkableRegions;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -47,6 +50,16 @@ public class Vehicle : MonoBehaviour
         {
             targetPosition = MouseWorld.GetPosition();
             shouldMove = true;
+            // TerrainType terrain = mapGenerator.GetTerrainAtPosition(targetPosition);
+            // Debug.Log(terrain);
+            // if (System.Array.Exists(walkableRegions, region => region == terrain.name))
+            // {
+            //     shouldMove = true;
+            // }
+            // else
+            // {
+            //     shouldMove = false;
+            // }
         }
     }
 
@@ -80,7 +93,6 @@ public class Vehicle : MonoBehaviour
         Vector3 size = collider.bounds.size;
 
         Physics.Raycast(this.transform.position + new Vector3(0, size.y / 2, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
-        Debug.Log(this.transform.position);
         this.transform.position = new Vector3(this.transform.position.x, raycastHit.point.y, this.transform.position.z);
 
         this.ApplyForce(seekForce);

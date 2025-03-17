@@ -7,7 +7,7 @@ public class MapGenerator : MonoBehaviour
 	public enum DrawMode {NoiseMap, ColorMap, Mesh};
 	public DrawMode drawMode;
 
-	const int mapChunkSize = 241;
+	public const int mapChunkSize = 241;
 	[Range(0,6)]
 	public int levelOfDetail;
 	public float noiseScale;
@@ -27,6 +27,8 @@ public class MapGenerator : MonoBehaviour
 
 	public TerrainType[] regions;
 
+	public float[,] noiseMap;
+
 	void Awake()
 	{
 		seed = Random.Range(int.MinValue, int.MaxValue);
@@ -34,7 +36,7 @@ public class MapGenerator : MonoBehaviour
 	}
 
 	public void GenerateMap() {
-		float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, offset);
+		noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, offset);
 
 		Color[] colorMap = new Color[mapChunkSize * mapChunkSize];
 		for (int y = 0; y < mapChunkSize; y++) 
@@ -67,6 +69,25 @@ public class MapGenerator : MonoBehaviour
 			display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail), TextureGenerator.TextureFromColorMap(colorMap, mapChunkSize, mapChunkSize));
 		}
 	}
+
+	public TerrainType GetTerrainAtPosition(Vector3 worldPosition) 
+	{
+        int x = Mathf.FloorToInt(worldPosition.x);
+        int y = Mathf.FloorToInt(worldPosition.z);
+
+        if (x < 0 || x >= mapChunkSize || y < 0 || y >= mapChunkSize)
+            return default;
+
+        float height = noiseMap[x, y];
+        foreach (TerrainType region in regions) 
+		{
+            if (height <= region.height) 
+			{
+                return region;
+            }
+        }
+        return default;
+    }
 
 	void OnValidate() 
 	{
