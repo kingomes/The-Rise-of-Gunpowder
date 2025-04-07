@@ -14,6 +14,9 @@ public class Enemy : MonoBehaviour {
     [SerializeField] private GameObject normalPoint;
     [SerializeField] private float lookAheadDistance;
 
+    [SerializeField] private float xOffset;
+    [SerializeField] private float yOffset;
+
     [SerializeField] private Enemy[] enemies;
     [SerializeField] private GameObject player;
 
@@ -58,11 +61,14 @@ public class Enemy : MonoBehaviour {
 
     private void Wander() 
     {
-        acceleration = Random.onUnitSphere; // create a random unit vector
-        acceleration.y = 0;
-        acceleration *= Random.Range(-3f, 3f);
-        this.velocity += acceleration * Time.deltaTime;
-        this.transform.position += this.velocity * Time.deltaTime;
+        float perlinX = Mathf.PerlinNoise(xOffset, 0);
+        float perlinY = Mathf.PerlinNoise(yOffset, 0);
+        float xVelocity = Unity.Mathematics.math.remap(0, 1, -this.maxSpeed, this.maxSpeed, perlinX);
+        float zVelocity = Unity.Mathematics.math.remap(0, 1, -this.maxSpeed, this.maxSpeed, perlinY);
+        this.xOffset += 0.01f;
+        this.yOffset += 0.01f;
+        velocity.x = xVelocity;
+        velocity.z = zVelocity;
     }
 
     private Vector3 Seek()

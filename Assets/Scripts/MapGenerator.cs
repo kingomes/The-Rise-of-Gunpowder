@@ -70,25 +70,6 @@ public class MapGenerator : MonoBehaviour
 		}
 	}
 
-	public TerrainType GetTerrainAtPosition(Vector3 worldPosition) 
-	{
-        int x = Mathf.FloorToInt(worldPosition.x);
-        int y = Mathf.FloorToInt(worldPosition.z);
-
-        if (x < 0 || x >= mapChunkSize || y < 0 || y >= mapChunkSize)
-            return default;
-
-        float height = noiseMap[x, y];
-        foreach (TerrainType region in regions) 
-		{
-            if (height <= region.height) 
-			{
-                return region;
-            }
-        }
-        return default;
-    }
-
 	void OnValidate() 
 	{
 		if (lacunarity < 1) 
