@@ -1,5 +1,7 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 
 public class Enemy : MonoBehaviour {
 
@@ -20,6 +22,23 @@ public class Enemy : MonoBehaviour {
     [SerializeField] private Enemy[] enemies;
     [SerializeField] private GameObject player;
 
+    [SerializeField] private NavMeshAgent agent;
+    [SerializeField] private float timeBetweenAttacks;
+    private bool alreadyAttacked;
+
+    [SerializeField] private float sightRange;
+    [SerializeField] private float attackRange;
+    [SerializeField] private bool playerInSightRange;
+    [SerializeField] private bool playerInAttackRange;
+    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private LayerMask whatIsPlayer;
+    [SerializeField] private GameObject projectile;
+
+    private string sceneName;
+
+    private float health;
+
+
     void Start() 
     {
         acceleration = Vector3.zero;
@@ -28,20 +47,38 @@ public class Enemy : MonoBehaviour {
         maxForce = 0.1f;
         mass = 1f;
         player = GameObject.FindGameObjectWithTag("Player");
+        agent = GetComponent<NavMeshAgent>();
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        sceneName = currentScene.name;
     }
 
-    // Update is called once per frame
+    private void Update()
+    {
+        if (sceneName != "WorldMap")
+        {
+            playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
+            playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
+
+            if (playerInSightRange && !playerInAttackRange) ChasePlayer();
+            if (playerInSightRange && playerInAttackRange) AttackPlayer();
+        }
+    }
+
     void FixedUpdate() 
     {
-        ApplyBehaviors();
+        if (sceneName == "WorldMap")
+        {
+            ApplyBehaviors();
 
-        velocity += acceleration;
-        velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
-        this.transform.position += velocity;
+            velocity += acceleration;
+            velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+            this.transform.position += velocity;
 
-        transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
+            transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
 
-        acceleration = Vector3.zero;
+            acceleration = Vector3.zero;
+        }
     }
     
     private void ApplyForce(Vector3 force)
@@ -125,5 +162,44 @@ public class Enemy : MonoBehaviour {
         steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
 
         this.ApplyForce(steeringForce);
+    }
+
+    private void ChasePlayer()
+    {
+        agent.SetDestination(player.transform.position);
+    }
+
+    private void AttackPlayer()
+    {
+        agent.SetDestination(transform.position);
+        transform.LookAt(player.transform);
+
+        if (!alreadyAttacked)
+        {
+            Rigidbody rb = Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
+
+            rb.AddForce(transform.forward * 32f, ForceMode.Impulse);
+            rb.AddForce(transform.up * 8f, ForceMode.Impulse);
+
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttacks);
+        }
+    }
+
+    private void ResetAttack()
+    {
+        alreadyAttacked = false;
+    }
+
+    private void TakeDamage(int damage)
+    {
+        health -= damage;
+
+        if (health <= 0) Invoke(nameof(DestroyEnemy), 0.5f);
+    }
+
+    private void DestroyEnemy()
+    {
+        Destroy(gameObject);
     }
 }
