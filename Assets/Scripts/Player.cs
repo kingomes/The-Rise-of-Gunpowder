@@ -23,8 +23,6 @@ public class Vehicle : MonoBehaviour
 
     private string sceneName;
 
-    private float yOffset = 0.5f;
-
     private Collider collider;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

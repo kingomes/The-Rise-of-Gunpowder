@@ -1,5 +1,5 @@
 using UnityEngine;
-using Cinemachine;
+using Unity.Cinemachine;
 using StarterAssets;
 using UnityEngine.InputSystem;
 
