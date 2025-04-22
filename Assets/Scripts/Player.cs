@@ -19,11 +19,13 @@ public class Vehicle : MonoBehaviour
     [SerializeField] private Vehicle[] vehicles;
 
     private Vector3 targetPosition;
-    private bool shouldMove = false;
+    private bool shouldMove;
 
     private string sceneName;
 
     private Collider collider;
+
+    public MapGenerator mapGenerator;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -35,6 +37,8 @@ public class Vehicle : MonoBehaviour
         mass = 1f;
         vehicles = GameObject.FindObjectsOfType<Vehicle>();
 
+        shouldMove = false;
+
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
     }
@@ -43,8 +47,41 @@ public class Vehicle : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1) && sceneName == "WorldMap")
         {
+            shouldMove = false;
             targetPosition = MouseWorld.GetPosition();
-            shouldMove = true;
+
+            Ray ray = Camera.main.ScreenPointToRay(targetPosition);
+            Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
+
+            Renderer rend = raycastHit.transform.GetComponent<Renderer>();
+            MeshCollider meshCollider = raycastHit.collider as MeshCollider;
+
+            if (rend == null || rend.sharedMaterial == null || rend.sharedMaterial.mainTexture == null || meshCollider == null)
+                return;
+
+            Texture2D tex = rend.material.mainTexture as Texture2D;
+
+            Vector2 pixelUV = raycastHit.textureCoord;
+            pixelUV.x *= tex.width;
+            pixelUV.y *= tex.height;
+            Color colorAtRayCast = tex.GetPixel((int) pixelUV.x, (int) pixelUV.y);
+
+            float colorTolerance = 0.1f;
+            foreach (TerrainType region in mapGenerator.regions)
+            {
+                if (region.name == "Grass" || region.name == "Grass 2" || region.name == "Sand")
+                {
+                    if (Mathf.Abs(colorAtRayCast.r - region.color.r) < colorTolerance && Mathf.Abs(colorAtRayCast.g - region.color.g) < colorTolerance && Mathf.Abs(colorAtRayCast.b - region.color.b) < colorTolerance)
+                    {
+                        shouldMove = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    shouldMove = false;
+                }
+            }
         }
     }
 
@@ -78,14 +115,6 @@ public class Vehicle : MonoBehaviour
         Vector3 size = collider.bounds.size;
 
         Physics.Raycast(this.transform.position + new Vector3(0, size.y / 2, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
-        Renderer rend = raycastHit.transform.GetComponent<Renderer>();
-        MeshCollider meshCollider = raycastHit.collider as MeshCollider;
-
-        if (rend == null || rend.sharedMaterial == null || rend.sharedMaterial.mainTexture == null || meshCollider == null)
-            return;
-
-        Texture2D tex = rend.material.mainTexture as Texture2D;
-        Debug.Log(tex.GetPixel((int) raycastHit.textureCoord.x, (int) raycastHit.textureCoord.y));
 
         this.transform.position = new Vector3(this.transform.position.x, raycastHit.point.y, this.transform.position.z);
 
