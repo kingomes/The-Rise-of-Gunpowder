@@ -38,7 +38,7 @@ public class SpawnWorld : MonoBehaviour
                 RaycastHit raycastHit;
                 if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
                 {
-                    if (enemySpawnChance > Random.Range(0, 101) && enemySpawnCount < enemySpawnNumber && x != 0 && z != 0)
+                    if (enemySpawnChance > Random.Range(0, 101) && enemySpawnCount < enemySpawnNumber)
                     {
                         Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity, transform);
                         enemySpawnCount++;
@@ -58,7 +58,7 @@ public class SpawnWorld : MonoBehaviour
                 RaycastHit raycastHit;
                 if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
                 {
-                    if (playerSpawnChance > Random.Range(0, 101) && playerSpawnCount < playerSpawnNumber && x != 0 && z != 0)
+                    if (playerSpawnChance > Random.Range(0, 101) && playerSpawnCount < playerSpawnNumber)
                     {
                         Instantiate(playerPrefab, raycastHit.point, Quaternion.identity, transform);
                         playerSpawnCount++;

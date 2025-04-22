@@ -38,7 +38,7 @@ public class Enemy : MonoBehaviour {
 
     private float health;
 
-
+    [SerializeField] private float numAllies;
     void Start() 
     {
         acceleration = Vector3.zero;
@@ -51,6 +51,8 @@ public class Enemy : MonoBehaviour {
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
+
+        numAllies = 50;
     }
 
     private void Update()

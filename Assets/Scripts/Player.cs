@@ -27,6 +27,8 @@ public class Vehicle : MonoBehaviour
 
     public MapGenerator mapGenerator;
 
+    [SerializeField] private int numAllies;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -41,6 +43,7 @@ public class Vehicle : MonoBehaviour
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
+        numAllies = 50;
     }
 
     void Update()
