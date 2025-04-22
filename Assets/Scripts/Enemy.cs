@@ -55,6 +55,11 @@ public class Enemy : MonoBehaviour {
 
     private void Update()
     {
+        if (player == null)
+        {
+            return;
+        }
+
         if (sceneName != "WorldMap")
         {
             playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
@@ -69,6 +74,11 @@ public class Enemy : MonoBehaviour {
     {
         if (sceneName == "WorldMap")
         {
+            if (player == null)
+            {
+                return;
+            }
+            
             ApplyBehaviors();
 
             velocity += acceleration;
@@ -114,7 +124,7 @@ public class Enemy : MonoBehaviour {
         float maxNeighborDistance = 500f;
         float count = 0;
         Vector3 direction = Vector3.zero;
-
+    
         float distance = Vector3.Distance(player.transform.position, this.transform.position);
 
         if (distance < maxNeighborDistance)

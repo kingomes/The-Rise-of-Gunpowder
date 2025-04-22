@@ -16,6 +16,18 @@ public class CameraController : MonoBehaviour
     }
     private void Update()
     {
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                player = GameObject.FindGameObjectWithTag("Player").transform;
+            }
+            else 
+            {
+                return;
+            }
+        }
         Vector3 pos = Vector3.Lerp(transform.position, player.position + offset + -transform.forward * followDistance, moveSpeed * Time.deltaTime);
         transform.position = pos;
 
