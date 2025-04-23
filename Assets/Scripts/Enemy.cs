@@ -32,7 +32,8 @@ public class Enemy : MonoBehaviour {
     [SerializeField] private bool playerInAttackRange;
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private LayerMask whatIsPlayer;
-    [SerializeField] private GameObject projectile;
+    [SerializeField] private GameObject bullet;
+    [SerializeField] private Transform spawnBulletPosition;
 
     private string sceneName;
 
@@ -178,20 +179,17 @@ public class Enemy : MonoBehaviour {
 
     private void ChasePlayer()
     {
-        agent.SetDestination(player.transform.position);
+        ApplyBehaviors();
     }
 
     private void AttackPlayer()
     {
-        agent.SetDestination(transform.position);
         transform.LookAt(player.transform);
 
         if (!alreadyAttacked)
         {
-            Rigidbody rb = Instantiate(projectile, transform.position, Quaternion.identity).GetComponent<Rigidbody>();
-
-            rb.AddForce(transform.forward * 32f, ForceMode.Impulse);
-            rb.AddForce(transform.up * 8f, ForceMode.Impulse);
+            Vector3 aimDir = (player.transform.position - spawnBulletPosition.position).normalized;
+            Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
 
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);

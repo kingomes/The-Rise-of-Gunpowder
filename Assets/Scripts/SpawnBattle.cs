@@ -31,34 +31,55 @@ public class SpawnBattle : MonoBehaviour
     void SpawnEnemies()
     {
         int enemySpawnCount = 0;
-        while (enemySpawnCount < enemySpawnNumber)
+        int maxAttempts = 1000;
+        int attempts = 0;
+
+        while (enemySpawnCount < enemySpawnNumber && attempts < maxAttempts)
         {
+            attempts++;
+
             float x = Random.Range(negativePosition.x, positivePosition.x);
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
             {
-                Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity, transform);
+                Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
                 enemySpawnCount++;
             }
         }
+
+        if (enemySpawnCount < enemySpawnNumber)
+        {
+            Debug.LogWarning($"Only spawned {enemySpawnCount} out of {enemySpawnNumber} enemies after {attempts} attempts.");
+        }
     }
+
 
     void SpawnAllies()
     {
         int allySpawnCount = 0;
-        while (allySpawnCount < allySpawnNumber)
+        int maxAttempts = 1000;
+        int attempts = 0;
+        while (allySpawnCount < allySpawnNumber && attempts < maxAttempts)
         {
+            attempts++;
+
             float x = Random.Range(negativePosition.x, positivePosition.x);
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
             {
-                Instantiate(allyPrefab, raycastHit.point, Quaternion.identity, transform);
+                Debug.Log($"Raycast hit {raycastHit.collider.gameObject.name} at {raycastHit.point}");
+                Instantiate(allyPrefab, raycastHit.point, Quaternion.identity);
                 allySpawnCount++;
             }
+        }
+
+        if (allySpawnCount < enemySpawnNumber)
+        {
+            Debug.LogWarning($"Only spawned {allySpawnCount} out of {enemySpawnNumber} enemies after {attempts} attempts.");
         }
     }
 
@@ -70,7 +91,7 @@ public class SpawnBattle : MonoBehaviour
         RaycastHit raycastHit;
         if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, layerMask))
         {
-            Instantiate(playerPrefab, raycastHit.point, Quaternion.identity, transform);
+            Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
         }
     }
 }

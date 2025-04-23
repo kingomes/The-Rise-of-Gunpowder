@@ -126,6 +126,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6490700842073895610}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &668567658553102459
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4511298460345429523}
+  m_Layer: 0
+  m_Name: SpawnBulletPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4511298460345429523
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 668567658553102459}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.423, z: 0.549}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2797873557317233461}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &707770863426097588
 GameObject:
   m_ObjectHideFlags: 0
@@ -872,7 +903,6 @@ GameObject:
   - component: {fileID: 5193503961740100367}
   - component: {fileID: 1272707609792899122}
   - component: {fileID: 2928921715600700136}
-  - component: {fileID: 2034673869998162775}
   - component: {fileID: 4887837853326259649}
   m_Layer: 8
   m_Name: Ally
@@ -894,6 +924,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 4511298460345429523}
   - {fileID: 3987064298914732237}
   - {fileID: 2002719568628975442}
   - {fileID: 1365715765121039318}
@@ -989,7 +1020,7 @@ MonoBehaviour:
   yOffset: 0
   enemies: []
   player: {fileID: 0}
-  agent: {fileID: 2034673869998162775}
+  agent: {fileID: 0}
   timeBetweenAttacks: 0
   sightRange: 0
   attackRange: 0
@@ -1001,7 +1032,8 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 256
-  projectile: {fileID: 7431481942017662491, guid: 527085a3efa26e04583801a4483508ff, type: 3}
+  bullet: {fileID: 7431481942017662491, guid: 527085a3efa26e04583801a4483508ff, type: 3}
+  spawnBulletPosition: {fileID: 4511298460345429523}
   numAllies: 0
 --- !u!136 &2928921715600700136
 CapsuleCollider:
@@ -1026,28 +1058,6 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!195 &2034673869998162775
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2903530462464300836}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &4887837853326259649
 MonoBehaviour:
   m_ObjectHideFlags: 0

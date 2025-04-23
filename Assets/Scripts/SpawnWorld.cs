@@ -40,7 +40,7 @@ public class SpawnWorld : MonoBehaviour
                 {
                     if (enemySpawnChance > Random.Range(0, 101) && enemySpawnCount < enemySpawnNumber)
                     {
-                        Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity, transform);
+                        Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
                         enemySpawnCount++;
                     }
                 }
@@ -60,7 +60,7 @@ public class SpawnWorld : MonoBehaviour
                 {
                     if (playerSpawnChance > Random.Range(0, 101) && playerSpawnCount < playerSpawnNumber)
                     {
-                        Instantiate(playerPrefab, raycastHit.point, Quaternion.identity, transform);
+                        Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
                         playerSpawnCount++;
                     }
                 }
