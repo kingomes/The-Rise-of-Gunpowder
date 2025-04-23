@@ -31,13 +31,9 @@ public class SpawnBattle : MonoBehaviour
     void SpawnEnemies()
     {
         int enemySpawnCount = 0;
-        int maxAttempts = 1000;
-        int attempts = 0;
 
-        while (enemySpawnCount < enemySpawnNumber && attempts < maxAttempts)
+        while (enemySpawnCount < enemySpawnNumber)
         {
-            attempts++;
-
             float x = Random.Range(negativePosition.x, positivePosition.x);
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
@@ -48,38 +44,23 @@ public class SpawnBattle : MonoBehaviour
                 enemySpawnCount++;
             }
         }
-
-        if (enemySpawnCount < enemySpawnNumber)
-        {
-            Debug.LogWarning($"Only spawned {enemySpawnCount} out of {enemySpawnNumber} enemies after {attempts} attempts.");
-        }
     }
 
 
     void SpawnAllies()
     {
         int allySpawnCount = 0;
-        int maxAttempts = 1000;
-        int attempts = 0;
-        while (allySpawnCount < allySpawnNumber && attempts < maxAttempts)
+        while (allySpawnCount < allySpawnNumber)
         {
-            attempts++;
-
             float x = Random.Range(negativePosition.x, positivePosition.x);
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
             if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
             {
-                Debug.Log($"Raycast hit {raycastHit.collider.gameObject.name} at {raycastHit.point}");
                 Instantiate(allyPrefab, raycastHit.point, Quaternion.identity);
                 allySpawnCount++;
             }
-        }
-
-        if (allySpawnCount < enemySpawnNumber)
-        {
-            Debug.LogWarning($"Only spawned {allySpawnCount} out of {enemySpawnNumber} enemies after {attempts} attempts.");
         }
     }
 

@@ -50,21 +50,13 @@ public class SpawnWorld : MonoBehaviour
 
     void SpawnPlayer()
     {
-        int playerSpawnCount = 0;
-        for (float x = positivePosition.x; x >= negativePosition.x; x -= distanceBetweenChecks)
+        float x = Random.Range(negativePosition.x, positivePosition.x);
+        float z = Random.Range(negativePosition.y, positivePosition.y);
+
+        RaycastHit raycastHit;
+        if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, layerMask))
         {
-            for (float z = positivePosition.y; z >= negativePosition.y; z -= distanceBetweenChecks)
-            {
-                RaycastHit raycastHit;
-                if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
-                {
-                    if (playerSpawnChance > Random.Range(0, 101) && playerSpawnCount < playerSpawnNumber)
-                    {
-                        Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
-                        playerSpawnCount++;
-                    }
-                }
-            }
+            Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
         }
     }
 }
