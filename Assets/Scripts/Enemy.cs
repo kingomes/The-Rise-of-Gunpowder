@@ -22,7 +22,6 @@ public class Enemy : MonoBehaviour {
     [SerializeField] private Enemy[] enemies;
     [SerializeField] private GameObject player;
 
-    [SerializeField] private NavMeshAgent agent;
     [SerializeField] private float timeBetweenAttacks;
     private bool alreadyAttacked;
 
@@ -48,7 +47,10 @@ public class Enemy : MonoBehaviour {
         maxForce = 0.1f;
         mass = 1f;
         player = GameObject.FindGameObjectWithTag("Player");
-        agent = GetComponent<NavMeshAgent>();
+        
+        timeBetweenAttacks = 10f;
+        sightRange = 100f;
+        attackRange = 50f;
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;

@@ -44,6 +44,8 @@ public class Vehicle : MonoBehaviour
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
         numAllies = 50;
+
+        mapGenerator = GameObject.FindAnyObjectByType<MapGenerator>();
     }
 
     void Update()
@@ -56,7 +58,7 @@ public class Vehicle : MonoBehaviour
             Ray ray = Camera.main.ScreenPointToRay(targetPosition);
             Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
 
-            Renderer rend = raycastHit.transform.GetComponent<Renderer>();
+            MeshRenderer rend = raycastHit.transform.GetComponent<MeshRenderer>();
             MeshCollider meshCollider = raycastHit.collider as MeshCollider;
 
             if (rend == null || rend.sharedMaterial == null || rend.sharedMaterial.mainTexture == null || meshCollider == null)

@@ -1,11 +1,10 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SpawnWorld : MonoBehaviour
+public class Spawner : MonoBehaviour
 {
     [Header("Enemy Spawn Settings")]
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private float enemySpawnChance;
     [SerializeField] private float enemySpawnNumber;
 
     [Header("Ally Spawn Settings")]
@@ -14,7 +13,6 @@ public class SpawnWorld : MonoBehaviour
 
     [Header("Player Spawn Settings")]
     [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private float playerSpawnChance;
     [SerializeField] private float playerSpawnNumber;
 
     [Header("Raycast Settings")]
@@ -45,8 +43,8 @@ public class SpawnWorld : MonoBehaviour
         }
         else
         {
-            negativePosition = new Vector2(-1200f, -1200f);
-            positivePosition = new Vector2(1200f, 1200f);
+            negativePosition = new Vector2(-400f, -400f);
+            positivePosition = new Vector2(400f, 400f);
 
             SpawnEnemies();
             SpawnAllies();
@@ -57,19 +55,16 @@ public class SpawnWorld : MonoBehaviour
     void SpawnEnemies()
     {
         int enemySpawnCount = 0;
-        for (float x = negativePosition.x; x <= positivePosition.x; x += distanceBetweenChecks)
+        while (enemySpawnCount < enemySpawnNumber)
         {
-            for (float z = negativePosition.y; z <= positivePosition.y; z += distanceBetweenChecks)
+            float x = Random.Range(negativePosition.x, positivePosition.x);
+            float z = Random.Range(negativePosition.y, positivePosition.y);
+
+            RaycastHit raycastHit;
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
             {
-                RaycastHit raycastHit;
-                if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
-                {
-                    if (enemySpawnChance > Random.Range(0, 101) && enemySpawnCount < enemySpawnNumber)
-                    {
-                        Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
-                        enemySpawnCount++;
-                    }
-                }
+                Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
+                enemySpawnCount++;
             }
         }
     }
@@ -83,7 +78,7 @@ public class SpawnWorld : MonoBehaviour
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
             {
                 Instantiate(allyPrefab, raycastHit.point, Quaternion.identity);
                 allySpawnCount++;

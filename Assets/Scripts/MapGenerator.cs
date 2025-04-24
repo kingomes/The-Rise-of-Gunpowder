@@ -29,7 +29,7 @@ public class MapGenerator : MonoBehaviour
 
 	public float[,] noiseMap;
 
-	void Awake()
+	void Start()
 	{
 		seed = Random.Range(int.MinValue, int.MaxValue);
 		GenerateMap();

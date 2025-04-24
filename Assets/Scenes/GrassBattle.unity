@@ -354,7 +354,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 184435856}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2d1a9facb3a54674a454af3825cb6e6, type: 3}
+  m_Script: {fileID: 11500000, guid: 60ce6cd4d9f01f749a77e318e05ae8ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 1846682299228511431, guid: e08195721c3fa6d44b4774494ca3c03f, type: 3}
@@ -362,7 +362,10 @@ MonoBehaviour:
   allyPrefab: {fileID: 2903530462464300836, guid: 63a71a72fa58c43b8b3673ae2c6f11af, type: 3}
   allySpawnNumber: 50
   playerPrefab: {fileID: 295197974793872654, guid: 5ed5dd02b9a28314e898b939dffd7a7b, type: 3}
+  playerSpawnNumber: 1
+  distanceBetweenChecks: 0
   heightOfCheck: 100
+  rangeOfCheck: 100
   layerMask:
     serializedVersion: 2
     m_Bits: 128

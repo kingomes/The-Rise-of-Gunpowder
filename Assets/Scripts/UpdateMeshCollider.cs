@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class UpdateMeshCollider : MonoBehaviour
 {
-    void Awake()
+    void Start()
     {
         MeshFilter meshFilter = GetComponent<MeshFilter>();
         MeshCollider meshCollider = this.AddComponent<MeshCollider>();

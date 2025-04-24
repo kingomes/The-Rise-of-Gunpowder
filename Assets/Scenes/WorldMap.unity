@@ -696,13 +696,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 1846682299228511431, guid: e08195721c3fa6d44b4774494ca3c03f, type: 3}
-  enemySpawnChance: 5
   enemySpawnNumber: 3
+  allyPrefab: {fileID: 2903530462464300836, guid: 63a71a72fa58c43b8b3673ae2c6f11af, type: 3}
+  allySpawnNumber: 0
   playerPrefab: {fileID: 8207427386417139543, guid: 09211671def20491089e512cffd481e6, type: 3}
-  playerSpawnChance: 5
   playerSpawnNumber: 1
-  distanceBetweenChecks: 100
-  heightOfCheck: 10
+  distanceBetweenChecks: 0
+  heightOfCheck: 100
   rangeOfCheck: 100
   layerMask:
     serializedVersion: 2
