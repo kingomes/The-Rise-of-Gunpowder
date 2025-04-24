@@ -703,7 +703,7 @@ MonoBehaviour:
   playerSpawnNumber: 1
   distanceBetweenChecks: 0
   heightOfCheck: 100
-  rangeOfCheck: 100
+  rangeOfCheck: 500
   layerMask:
     serializedVersion: 2
     m_Bits: 64

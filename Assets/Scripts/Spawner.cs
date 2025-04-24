@@ -37,6 +37,8 @@ public class Spawner : MonoBehaviour
         {
             negativePosition = new Vector2(-1200f, -1200f);
             positivePosition = new Vector2(1200f, 1200f);
+            enemyPrefab.transform.localScale = new Vector3(20f, 20f, 20f);
+            playerPrefab.transform.localScale = new Vector3(20f, 20f, 20f);
 
             SpawnEnemies();
             SpawnPlayer();
@@ -61,7 +63,7 @@ public class Spawner : MonoBehaviour
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
             {
                 Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
                 enemySpawnCount++;
@@ -78,7 +80,7 @@ public class Spawner : MonoBehaviour
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
             {
                 Instantiate(allyPrefab, raycastHit.point, Quaternion.identity);
                 allySpawnCount++;
@@ -92,8 +94,9 @@ public class Spawner : MonoBehaviour
         float z = Random.Range(negativePosition.y, positivePosition.y);
 
         RaycastHit raycastHit;
-        if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
+        if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
         {
+            Debug.Log($"✅ Ray hit: {raycastHit.collider.name} at {raycastHit.point}");
             Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
         }
     }
