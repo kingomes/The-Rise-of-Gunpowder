@@ -63,7 +63,7 @@ public class Spawner : MonoBehaviour
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
             {
                 Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
                 enemySpawnCount++;
@@ -80,7 +80,7 @@ public class Spawner : MonoBehaviour
             float z = Random.Range(negativePosition.y, positivePosition.y);
 
             RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
+            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
             {
                 Instantiate(allyPrefab, raycastHit.point, Quaternion.identity);
                 allySpawnCount++;
@@ -94,7 +94,7 @@ public class Spawner : MonoBehaviour
         float z = Random.Range(negativePosition.y, positivePosition.y);
 
         RaycastHit raycastHit;
-        if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, Mathf.Infinity, layerMask))
+        if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
         {
             Debug.Log($"✅ Ray hit: {raycastHit.collider.name} at {raycastHit.point}");
             Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
