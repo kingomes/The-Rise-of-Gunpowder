@@ -51,8 +51,8 @@ public class Enemy : MonoBehaviour {
         agent = GetComponent<NavMeshAgent>();
         
         timeBetweenAttacks = 10f;
-        sightRange = 100f;
-        attackRange = 50f;
+        sightRange = 500f;
+        attackRange = 100f;
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
@@ -199,7 +199,47 @@ public class Enemy : MonoBehaviour {
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
+        else
+        {
+            Transform cover = FindClosestCover();
+            if (cover != null)
+            {
+                agent.SetDestination(cover.transform.position);
+            }
+        }
     }
+
+    private Transform FindClosestCover()
+    {
+        GameObject[] coverPoints = GameObject.FindGameObjectsWithTag("CoverPoint");
+        Transform bestCover = null;
+        float bestDistance = Mathf.Infinity;
+
+        foreach (GameObject cover in coverPoints)
+        {
+            float distanceToCover = Vector3.Distance(transform.position, cover.transform.position);
+            Vector3 directionToPlayer = player.transform.position - cover.transform.position;
+
+            // Check if cover is between enemy and player (optional: use Raycast for more realism)
+            if (Physics.Raycast(cover.transform.position, directionToPlayer.normalized, out RaycastHit hit))
+            {
+                if (hit.collider.gameObject.CompareTag("Player"))
+                {
+                    // Not good cover if player is directly visible
+                    continue;
+                }
+            }
+
+            if (distanceToCover < bestDistance)
+            {
+                bestCover = cover.transform;
+                bestDistance = distanceToCover;
+            }
+        }
+
+        return bestCover;
+    }
+
 
     private void ResetAttack()
     {

@@ -32,7 +32,14 @@ public class SpawnTrees : MonoBehaviour
                 {
                     if (treeSpawnChance > Random.Range(0, 101))
                     {
-                        Instantiate(treePrefab, raycastHit.point, Quaternion.identity);
+                        GameObject treeInstance = Instantiate(treePrefab, raycastHit.point, Quaternion.identity);
+                        CapsuleCollider capsuleCollider = treeInstance.AddComponent<CapsuleCollider>();
+                        capsuleCollider.radius = 1f;
+                        capsuleCollider.center = new Vector3(0.5f, 5, -0.6f);
+
+                        GameObject cover = new GameObject();
+                        cover.transform.position = treeInstance.transform.position;
+                        cover.tag = "CoverPoint";
                     }
                 }
             }

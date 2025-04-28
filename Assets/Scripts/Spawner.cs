@@ -96,7 +96,6 @@ public class Spawner : MonoBehaviour
         RaycastHit raycastHit;
         if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
         {
-            Debug.Log($"✅ Ray hit: {raycastHit.collider.name} at {raycastHit.point}");
             Instantiate(playerPrefab, raycastHit.point, Quaternion.identity);
         }
     }
