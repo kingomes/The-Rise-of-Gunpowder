@@ -1,7 +1,6 @@
 using UnityEngine;
 using Unity.Cinemachine;
 using StarterAssets;
-using UnityEngine.InputSystem;
 
 public class ThirdPersonShooterController : MonoBehaviour
 {
@@ -10,7 +9,7 @@ public class ThirdPersonShooterController : MonoBehaviour
     [SerializeField] private float aimSensitivity;
     [SerializeField] private LayerMask aimColliderLayerMask = new LayerMask();
     [SerializeField] private Transform debugTransform;
-    [SerializeField] private Transform bullet;
+    [SerializeField] private GameObject bullet;
     [SerializeField] private Transform spawnBulletPosition;
     // [SerializeField] private Transform vfxHitGreen;
     // [SerializeField] private Transform vfxHitRed;
@@ -24,6 +23,14 @@ public class ThirdPersonShooterController : MonoBehaviour
         starterAssetsInputs = GetComponent<StarterAssetsInputs>();
         thirdPersonController = GetComponent<ThirdPersonController>();
         animator = GetComponent<Animator>();
+    }
+
+    private void Start()
+    {
+        aimVirtualCamera = GameObject.Find("PlayerAimCamera").GetComponent<CinemachineVirtualCamera>();
+        debugTransform = GameObject.Find("Sphere").transform;
+        spawnBulletPosition = transform.GetChild(3).transform;
+        spawnBulletPosition.localPosition = new Vector3(0.21f, 1.38f, 0.42f);
     }
 
     private void Update()

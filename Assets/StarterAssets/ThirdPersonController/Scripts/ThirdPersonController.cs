@@ -153,6 +153,7 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+            CinemachineCameraTarget = GameObject.FindGameObjectWithTag("Player").transform.GetChild(0).gameObject;
         }
 
         private void Update()
