@@ -35,6 +35,10 @@ public class Enemy : MonoBehaviour {
     [SerializeField] private GameObject bullet;
     [SerializeField] private Transform spawnBulletPosition;
 
+    private bool isInCover;
+    private bool isPeeking;
+    private Transform currentCover;
+
     private string sceneName;
 
     private float health;
@@ -53,6 +57,9 @@ public class Enemy : MonoBehaviour {
         timeBetweenAttacks = 10f;
         sightRange = 500f;
         attackRange = 100f;
+
+        isInCover = false;
+        isPeeking = false;
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
@@ -74,6 +81,12 @@ public class Enemy : MonoBehaviour {
 
             if (playerInSightRange && !playerInAttackRange) ChasePlayer();
             if (playerInSightRange && playerInAttackRange) AttackPlayer();
+            if (isInCover) PeekAndShoot();
+
+            if (agent.remainingDistance <= agent.stoppingDistance && currentCover != null)
+            {
+                isInCover = true;
+            }
         }
     }
 
@@ -168,19 +181,6 @@ public class Enemy : MonoBehaviour {
         }
     }
 
-    private void Flee(Vector3 targetPosition)
-    {
-        Vector3 direction = transform.position - targetPosition;
-        direction.Normalize();
-
-        Vector3 desiredVelocity = direction * this.maxSpeed;
-
-        Vector3 steeringForce = desiredVelocity - this.velocity;
-        steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
-
-        this.ApplyForce(steeringForce);
-    }
-
     private void ChasePlayer()
     {
         agent.SetDestination(player.transform.position);
@@ -205,6 +205,7 @@ public class Enemy : MonoBehaviour {
             if (cover != null)
             {
                 agent.SetDestination(cover.transform.position);
+                currentCover = cover;
             }
         }
     }
@@ -240,6 +241,50 @@ public class Enemy : MonoBehaviour {
         return bestCover;
     }
 
+    private void PeekAndShoot()
+    {
+        if (!isPeeking && !alreadyAttacked)
+        {
+            isPeeking = true;
+
+            Invoke(nameof(PeekOutAndShoot), 2f);
+        }
+    }
+
+    private void PeekOutAndShoot()
+    {
+        if (player == null)
+            return;
+
+        
+        transform.LookAt(player.transform);
+
+        
+        Vector3 peekPosition = transform.position + transform.right * 1f;
+        agent.SetDestination(peekPosition);
+
+        
+        Vector3 aimDir = (player.transform.position - spawnBulletPosition.position).normalized;
+        Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
+
+        
+        Invoke(nameof(ReturnToCover), 1.5f);
+    }
+
+    private void ReturnToCover()
+    {
+        if (currentCover != null)
+        {
+            agent.SetDestination(currentCover.transform.position);
+        }
+
+        Invoke(nameof(ResetPeek), 3f);
+    }
+
+    private void ResetPeek()
+    {
+        isPeeking = false;
+    }
 
     private void ResetAttack()
     {

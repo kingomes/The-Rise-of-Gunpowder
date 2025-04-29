@@ -49,42 +49,54 @@ public class Spawner : MonoBehaviour
             positivePosition = new Vector2(400f, 400f);
 
             SpawnEnemies();
-            SpawnAllies();
-            SpawnPlayer();
+            SpawnPlayerAndAllies();
         }
     }
 
     void SpawnEnemies()
     {
         int enemySpawnCount = 0;
-        while (enemySpawnCount < enemySpawnNumber)
+        float z = Random.Range(negativePosition.y, positivePosition.y);
+        for (float x = negativePosition.x; x < positivePosition.x; x += distanceBetweenChecks)
         {
-            float x = Random.Range(negativePosition.x, positivePosition.x);
-            float z = Random.Range(negativePosition.y, positivePosition.y);
-
-            RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
+            while (enemySpawnCount < enemySpawnNumber)
             {
-                Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
-                enemySpawnCount++;
+                RaycastHit raycastHit;
+                if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
+                {
+                    Instantiate(enemyPrefab, raycastHit.point, Quaternion.identity);
+                    enemySpawnCount++;
+                }
             }
         }
     }
 
-    void SpawnAllies()
+    void SpawnPlayerAndAllies()
     {
         int allySpawnCount = 0;
-        while (allySpawnCount < allySpawnNumber)
-        {
-            float x = Random.Range(negativePosition.x, positivePosition.x);
-            float z = Random.Range(negativePosition.y, positivePosition.y);
+        float x = Random.Range(negativePosition.x, positivePosition.x);
+        float z = Random.Range(negativePosition.y, positivePosition.y);
 
-            RaycastHit raycastHit;
-            if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out raycastHit, rangeOfCheck, layerMask))
+        int attempts = 0;
+        int maxAttempts = 100;
+
+        RaycastHit playerRaycastHit;
+        if (Physics.Raycast(new Vector3(x, heightOfCheck, z), Vector3.down, out playerRaycastHit, rangeOfCheck, layerMask))
+        {
+            Instantiate(playerPrefab, playerRaycastHit.point, Quaternion.identity);
+        }
+
+        float allyX = x - allySpawnNumber / 2f;
+        while (allySpawnCount < allySpawnNumber && attempts < maxAttempts)
+        {
+            RaycastHit allyRaycastHit;
+            if (Physics.Raycast(new Vector3(allyX, heightOfCheck, z - 5f), Vector3.down, out allyRaycastHit, rangeOfCheck, layerMask))
             {
-                Instantiate(allyPrefab, raycastHit.point, Quaternion.identity);
+                Instantiate(allyPrefab, allyRaycastHit.point, Quaternion.identity);
                 allySpawnCount++;
+                allyX += 2f;
             }
+            attempts++;
         }
     }
 
