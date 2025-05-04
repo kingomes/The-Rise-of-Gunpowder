@@ -18,6 +18,9 @@ public class ThirdPersonShooterController : MonoBehaviour
     private StarterAssetsInputs starterAssetsInputs;
     private ThirdPersonController thirdPersonController;
 
+    private bool alreadyAttacked;
+    private float timeBetweenAttacks;
+
     private void Awake()
     {
         starterAssetsInputs = GetComponent<StarterAssetsInputs>();
@@ -31,6 +34,9 @@ public class ThirdPersonShooterController : MonoBehaviour
         debugTransform = GameObject.Find("Sphere").transform;
         spawnBulletPosition = transform.GetChild(3).transform;
         spawnBulletPosition.localPosition = new Vector3(0.21f, 1.38f, 0.42f);
+
+        alreadyAttacked = false;
+        timeBetweenAttacks = 10f;
     }
 
     private void Update()
@@ -73,7 +79,7 @@ public class ThirdPersonShooterController : MonoBehaviour
             animator.SetLayerWeight(1, Mathf.Lerp(animator.GetLayerWeight(1), 0f, Time.deltaTime * 10f));
         }
 
-        if (starterAssetsInputs.shoot)
+        if (starterAssetsInputs.shoot /* && !alreadyAttacked*/)
         {
             // if (hitTransform.GetComponent<BulletTarget>() != null)
             // {
@@ -86,6 +92,14 @@ public class ThirdPersonShooterController : MonoBehaviour
             Vector3 aimDir = (mouseWorldPosition - spawnBulletPosition.position).normalized;
             Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
             starterAssetsInputs.shoot = false;
+
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
+    }
+
+    private void ResetAttack()
+    {
+        alreadyAttacked = false;
     }
 }

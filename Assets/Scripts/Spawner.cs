@@ -5,15 +5,15 @@ public class Spawner : MonoBehaviour
 {
     [Header("Enemy Spawn Settings")]
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private float enemySpawnNumber;
+    [SerializeField] private int enemySpawnNumber;
 
     [Header("Ally Spawn Settings")]
     [SerializeField] private GameObject allyPrefab;
-    [SerializeField] private float allySpawnNumber;
+    [SerializeField] private int allySpawnNumber;
 
     [Header("Player Spawn Settings")]
     [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private float playerSpawnNumber;
+    [SerializeField] private int playerSpawnNumber;
 
     [Header("Raycast Settings")]
     [SerializeField] private float distanceBetweenChecks;
@@ -48,9 +48,29 @@ public class Spawner : MonoBehaviour
             negativePosition = new Vector2(-400f, -400f);
             positivePosition = new Vector2(400f, 400f);
 
-            //SpawnEnemies();
             SpawnCharactersForBattle();
         }
+    }
+
+    // getter methods
+    public int getNumEnemies()
+    {
+        return this.enemySpawnNumber;
+    }
+
+    public int getNumAllies()
+    {
+        return this.allySpawnNumber;
+    }
+
+    public int getNumPlayers()
+    {
+        return this.playerSpawnNumber;
+    }
+
+    public void reduceNumEnemies()
+    {
+        this.enemySpawnNumber--;
     }
 
     void SpawnEnemies()

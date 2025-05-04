@@ -25,7 +25,8 @@ public class Player : MonoBehaviour
 
     [SerializeField] private MapGenerator mapGenerator;
 
-    [SerializeField] private int numAllies;
+    private float health;
+    [SerializeField] private BattleManager battleManager;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -40,13 +41,21 @@ public class Player : MonoBehaviour
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
-        numAllies = 50;
+        health = 100f;
 
         mapGenerator = GameObject.FindAnyObjectByType<MapGenerator>();
+
+        battleManager = GameObject.FindAnyObjectByType<BattleManager>();
     }
 
     void Update()
     {
+        if (health <= 0)
+        {
+            Destroy(gameObject);
+            battleManager.reduceNumPlayers();
+        }
+        
         if (Input.GetMouseButtonDown(1) && sceneName == "WorldMap")
         {
             shouldMove = false;
@@ -89,16 +98,19 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (shouldMove)
+        if (sceneName == "WorldMap")
         {
-            ApplyBehaviors();
-        }
-        velocity += acceleration;
-        velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
-        this.transform.position += velocity;
-        transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
+            if (shouldMove)
+            {
+                ApplyBehaviors();
+            }
+            velocity += acceleration;
+            velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+            this.transform.position += velocity;
+            transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
 
-        acceleration = Vector3.zero;
+            acceleration = Vector3.zero;
+        }
     }
 
     private void ApplyForce(Vector3 force)
@@ -144,4 +156,9 @@ public class Player : MonoBehaviour
 
         return steeringForce;
     }
+
+    // public void TakeDamage(float damage)
+    // {
+    //     health -= damage;
+    // }
 }

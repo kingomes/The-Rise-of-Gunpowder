@@ -251,11 +251,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 1846682299228511431, guid: e08195721c3fa6d44b4774494ca3c03f, type: 3}
-  enemySpawnNumber: 50
+  enemySpawnNumber: 0
   allyPrefab: {fileID: 2903530462464300836, guid: 63a71a72fa58c43b8b3673ae2c6f11af, type: 3}
-  allySpawnNumber: 50
+  allySpawnNumber: 0
   playerPrefab: {fileID: 295197974793872654, guid: 5ed5dd02b9a28314e898b939dffd7a7b, type: 3}
-  playerSpawnNumber: 1
+  playerSpawnNumber: 0
   distanceBetweenChecks: 0
   heightOfCheck: 100
   rangeOfCheck: 105
@@ -1581,6 +1581,54 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!1 &1788910518
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1788910520}
+  - component: {fileID: 1788910519}
+  m_Layer: 0
+  m_Name: BattleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1788910519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788910518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 410941666679419408cb634c0e890363, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  numAllies: 0
+  numEnemies: 0
+  numPlayers: 0
+  spawner: {fileID: 184435859}
+--- !u!4 &1788910520
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788910518}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -160.11826, y: 12.714329, z: 748.07794}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2026225559
 GameObject:
   m_ObjectHideFlags: 0
@@ -1707,3 +1755,4 @@ SceneRoots:
   - {fileID: 1603312071}
   - {fileID: 184435858}
   - {fileID: 448630556}
+  - {fileID: 1788910520}

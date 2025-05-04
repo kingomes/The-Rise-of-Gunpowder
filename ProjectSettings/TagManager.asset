@@ -7,6 +7,7 @@ TagManager:
   - Enemy
   - CinemachineTarget
   - CoverPoint
+  - Ally
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - WhatIsGround
   - WhatIsPlayer
   - WhatIsEnemy
-  - 
+  - WhatIsAlly
   - 
   - 
   - 

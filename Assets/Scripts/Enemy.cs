@@ -1,57 +1,59 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
-public class Enemy : MonoBehaviour {
+public class Enemy : MonoBehaviour
+{
+    private Vector3 acceleration = Vector3.zero;
+    private Vector3 velocity = Vector3.zero;
+    private float maxSpeed;
+    private float mass;
+    private float maxForce;
 
-    [SerializeField] private Vector3 acceleration;
-    [SerializeField] private Vector3 velocity;
-    [SerializeField] private float maxSpeed;
-    [SerializeField] private float mass;
-    [SerializeField] private float maxForce;
+    private GameObject player;
 
-    [SerializeField] private GameObject futurePoint;
-    [SerializeField] private GameObject target;
-    [SerializeField] private GameObject normalPoint;
-    [SerializeField] private float lookAheadDistance;
-
-    [SerializeField] private float xOffset;
-    [SerializeField] private float yOffset;
-
-    [SerializeField] private Enemy[] enemies;
-    [SerializeField] private GameObject player;
+    private float xOffset;
+    private float yOffset;
 
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private float timeBetweenAttacks;
     private bool alreadyAttacked;
-
-    [SerializeField] private float sightRange;
-    [SerializeField] private float attackRange;
-    [SerializeField] private bool playerInSightRange;
-    [SerializeField] private bool playerInAttackRange;
-    [SerializeField] private LayerMask whatIsGround;
-    [SerializeField] private LayerMask whatIsPlayer;
-    [SerializeField] private GameObject bullet;
-    [SerializeField] private Transform spawnBulletPosition;
-
     private bool isInCover;
     private bool isPeeking;
     private Transform currentCover;
 
+    [SerializeField] private GameObject bullet;
+    [SerializeField] private Transform spawnBulletPosition;
+
+    [SerializeField] private float sightRange;
+    [SerializeField] private float attackRange;
+    [SerializeField] private float searchRadius;
+    [SerializeField] private LayerMask whatIsPlayer;
+    [SerializeField] private LayerMask whatIsAlly;
+
+    private bool playerInSightRange;
+    private bool playerInAttackRange;
+
+    private GameObject[] coverPoints;
     private string sceneName;
 
-    private float health;
+    [SerializeField] private Enemy[] enemies;
 
-    [SerializeField] private float numAllies;
-    void Start() 
+    private float health;
+    [SerializeField] private BattleManager battleManager;
+
+    void Start()
     {
+        this.transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[0].color = Color.red;
+        this.transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[1].color = Color.red;
+        this.transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[2].color = Color.red;
         acceleration = Vector3.zero;
         velocity = Vector3.zero;
         maxSpeed = 2f;
         maxForce = 0.1f;
         mass = 1f;
-        player = GameObject.FindGameObjectWithTag("Player");
+        player = null;
         agent = GetComponent<NavMeshAgent>();
         
         timeBetweenAttacks = 10f;
@@ -64,53 +66,65 @@ public class Enemy : MonoBehaviour {
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
 
-        numAllies = 50;
+        health = 100f;
+
+        searchRadius = 400f;
+
+        coverPoints = GameObject.FindGameObjectsWithTag("CoverPoint");
+
+        battleManager = GameObject.FindAnyObjectByType<BattleManager>();
+
+        StartCoroutine(CheckPlayerRanges());
+    }
+
+    private IEnumerator CheckPlayerRanges()
+    {
+        while (true)
+        {
+            if (player != null)
+            {
+                playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer | whatIsAlly);
+                playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer | whatIsAlly);
+            }
+            yield return new WaitForSeconds(0.2f); // Reduce physics checks
+        }
     }
 
     private void Update()
     {
-        if (player == null)
+        if (health <= 0)
         {
-            return;
+            Destroy(gameObject);
+            battleManager.reduceNumEnemies();
         }
 
-        if (sceneName != "WorldMap")
-        {
-            playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
-            playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
+        player = FindClosestPlayer();
+        if (player == null || sceneName == "WorldMap") return;
 
-            if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-            if (playerInSightRange && playerInAttackRange) AttackPlayer();
-            if (isInCover) PeekAndShoot();
+        if (playerInSightRange && !playerInAttackRange)
+            ChasePlayer();
+        else if (playerInSightRange && playerInAttackRange)
+            AttackPlayer();
 
-            if (agent.remainingDistance <= agent.stoppingDistance && currentCover != null)
-            {
-                isInCover = true;
-            }
-        }
+        if (isInCover)
+            PeekAndShoot();
+
+        if (agent.remainingDistance <= agent.stoppingDistance && currentCover != null)
+            isInCover = true;
     }
 
-    void FixedUpdate() 
+    void FixedUpdate()
     {
-        if (sceneName == "WorldMap")
-        {
-            if (player == null)
-            {
-                return;
-            }
-            
-            ApplyBehaviors();
+        if (sceneName != "WorldMap" || player == null) return;
 
-            velocity += acceleration;
-            velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
-            this.transform.position += velocity;
-
-            transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
-
-            acceleration = Vector3.zero;
-        }
+        ApplyBehaviors();
+        velocity += acceleration;
+        velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+        transform.position += velocity;
+        transform.rotation = Quaternion.LookRotation(velocity, Vector3.up);
+        acceleration = Vector3.zero;
     }
-    
+
     private void ApplyForce(Vector3 force)
     {
         acceleration += force / mass;
@@ -118,47 +132,32 @@ public class Enemy : MonoBehaviour {
 
     private void ApplyBehaviors()
     {
-        Vector3 seekForce = this.Seek();
-
+        Vector3 seekForce = Seek();
         seekForce.y = 0;
         seekForce *= 0.5f;
-
-        this.ApplyForce(seekForce);
-    }
-
-    private void Wander() 
-    {
-        float perlinX = Mathf.PerlinNoise(xOffset, 0);
-        float perlinY = Mathf.PerlinNoise(yOffset, 0);
-        float xVelocity = Unity.Mathematics.math.remap(0, 1, -this.maxSpeed, this.maxSpeed, perlinX);
-        float zVelocity = Unity.Mathematics.math.remap(0, 1, -this.maxSpeed, this.maxSpeed, perlinY);
-        this.xOffset += 0.01f;
-        this.yOffset += 0.01f;
-        velocity.x = xVelocity;
-        velocity.z = zVelocity;
+        ApplyForce(seekForce);
     }
 
     private Vector3 Seek()
     {
-
-        float maxNeighborDistance = 500f;
-        float count = 0;
         Vector3 direction = Vector3.zero;
-    
-        float distance = Vector3.Distance(player.transform.position, this.transform.position);
+        int count = 0;
+        float neighborRadius = 500f;
 
-        if (distance < maxNeighborDistance)
+        float distance = Vector3.Distance(player.transform.position, transform.position);
+        if (distance < neighborRadius)
         {
-            direction = player.transform.position - this.transform.position;
+            direction += (player.transform.position - transform.position);
             count++;
         }
 
         foreach (Enemy boid in enemies)
         {
-            distance = Vector3.Distance(boid.transform.position, this.transform.position);
-            if (this != boid && distance < maxNeighborDistance)
+            if (boid == this) continue;
+            distance = Vector3.Distance(boid.transform.position, transform.position);
+            if (distance < neighborRadius)
             {
-                direction = boid.transform.position - this.transform.position;
+                direction += (boid.transform.position - transform.position);
                 count++;
             }
         }
@@ -166,24 +165,31 @@ public class Enemy : MonoBehaviour {
         if (count > 0)
         {
             direction.Normalize();
-
-            Vector3 desiredVelocity = direction * this.maxSpeed;
-
-            Vector3 steeringForce = desiredVelocity - this.velocity;
-            steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
-
-            return steeringForce;
+            Vector3 desiredVelocity = direction * maxSpeed;
+            Vector3 steering = desiredVelocity - velocity;
+            return Vector3.ClampMagnitude(steering, maxForce);
         }
-        else
-        {
-            Wander();
-            return Vector3.zero;
-        }
+
+        Wander();
+        return Vector3.zero;
+    }
+
+    private void Wander()
+    {
+        float perlinX = Mathf.PerlinNoise(xOffset, 0);
+        float perlinY = Mathf.PerlinNoise(yOffset, 0);
+        float x = Mathf.Lerp(-maxSpeed, maxSpeed, perlinX);
+        float z = Mathf.Lerp(-maxSpeed, maxSpeed, perlinY);
+        xOffset += 0.01f;
+        yOffset += 0.01f;
+        velocity.x = x;
+        velocity.z = z;
     }
 
     private void ChasePlayer()
     {
-        agent.SetDestination(player.transform.position);
+        if (Vector3.Distance(agent.destination, player.transform.position) > 1f)
+            agent.SetDestination(player.transform.position);
     }
 
     private void AttackPlayer()
@@ -193,52 +199,80 @@ public class Enemy : MonoBehaviour {
 
         if (!alreadyAttacked)
         {
-            Vector3 aimDir = (player.transform.position - spawnBulletPosition.position).normalized;
-            Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
-
+            FireBullet();
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
         else
         {
-            Transform cover = FindClosestCover();
-            if (cover != null)
-            {
-                agent.SetDestination(cover.transform.position);
-                currentCover = cover;
-            }
+            if (currentCover == null)
+                currentCover = FindBestCover();
+
+            if (currentCover != null)
+                agent.SetDestination(currentCover.position);
         }
     }
 
-    private Transform FindClosestCover()
+    private void FireBullet()
     {
-        GameObject[] coverPoints = GameObject.FindGameObjectsWithTag("CoverPoint");
+        Vector3 aimDir = (player.transform.position - spawnBulletPosition.position).normalized;
+        Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
+    }
+
+    private Transform FindBestCover()
+    {
         Transform bestCover = null;
-        float bestDistance = Mathf.Infinity;
+        float bestScore = Mathf.NegativeInfinity;
 
         foreach (GameObject cover in coverPoints)
         {
-            float distanceToCover = Vector3.Distance(transform.position, cover.transform.position);
-            Vector3 directionToPlayer = player.transform.position - cover.transform.position;
+            Vector3 coverPos = cover.transform.position;
+            Vector3 toCover = coverPos - transform.position;
+            Vector3 toPlayer = player.transform.position - coverPos;
 
-            // Check if cover is between enemy and player (optional: use Raycast for more realism)
-            if (Physics.Raycast(cover.transform.position, directionToPlayer.normalized, out RaycastHit hit))
+            // skip if player can see this cover directly
+            if (Physics.Raycast(coverPos + Vector3.up * 1f, toPlayer.normalized, out RaycastHit hit, toPlayer.magnitude))
             {
-                if (hit.collider.gameObject.CompareTag("Player"))
-                {
-                    // Not good cover if player is directly visible
+                if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Ally"))
                     continue;
-                }
             }
 
-            if (distanceToCover < bestDistance)
+            // Score this cover point
+            float distanceScore = -toCover.magnitude;  // Closer to enemy
+            float safetyScore = toPlayer.magnitude;    // Farther from player
+
+            float totalScore = distanceScore + safetyScore;
+
+            if (totalScore > bestScore)
             {
+                bestScore = totalScore;
                 bestCover = cover.transform;
-                bestDistance = distanceToCover;
             }
         }
 
         return bestCover;
+    }
+
+
+    private GameObject FindClosestPlayer()
+    {
+        Collider[] nearby = Physics.OverlapSphere(transform.position, searchRadius, whatIsPlayer | whatIsAlly);
+        GameObject bestPlayer = null;
+        float bestDist = Mathf.Infinity;
+
+        foreach (Collider col in nearby)
+        {
+            if (!col.CompareTag("Player") && !col.CompareTag("Ally")) continue;
+
+            float dist = Vector3.Distance(transform.position, col.transform.position);
+            if (dist < bestDist)
+            {
+                bestPlayer = col.gameObject;
+                bestDist = dist;
+            }
+        }
+
+        return bestPlayer;
     }
 
     private void PeekAndShoot()
@@ -246,38 +280,25 @@ public class Enemy : MonoBehaviour {
         if (!isPeeking && !alreadyAttacked)
         {
             isPeeking = true;
-
             Invoke(nameof(PeekOutAndShoot), 2f);
         }
     }
 
     private void PeekOutAndShoot()
     {
-        if (player == null)
-            return;
+        if (player == null) return;
 
-        
         transform.LookAt(player.transform);
-
-        
         Vector3 peekPosition = transform.position + transform.right * 1f;
         agent.SetDestination(peekPosition);
-
-        
-        Vector3 aimDir = (player.transform.position - spawnBulletPosition.position).normalized;
-        Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
-
-        
+        FireBullet();
         Invoke(nameof(ReturnToCover), 1.5f);
     }
 
     private void ReturnToCover()
     {
         if (currentCover != null)
-        {
-            agent.SetDestination(currentCover.transform.position);
-        }
-
+            agent.SetDestination(currentCover.position);
         Invoke(nameof(ResetPeek), 3f);
     }
 
@@ -291,15 +312,8 @@ public class Enemy : MonoBehaviour {
         alreadyAttacked = false;
     }
 
-    private void TakeDamage(int damage)
+    public void TakeDamage(int damage)
     {
         health -= damage;
-
-        if (health <= 0) Invoke(nameof(DestroyEnemy), 0.5f);
-    }
-
-    private void DestroyEnemy()
-    {
-        Destroy(gameObject);
     }
 }

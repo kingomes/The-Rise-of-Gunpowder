@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class BulletProjectile : MonoBehaviour
@@ -30,5 +31,21 @@ public class BulletProjectile : MonoBehaviour
         //     Instantiate(vfxHitRed, transform.position, Quaternion.identity);
         // }
         Destroy(this.gameObject);
+
+        if (other.GetComponent<BulletTarget>() != null)
+        {
+            if (other.CompareTag("Enemy"))
+            {
+                other.GetComponent<Enemy>().TakeDamage(30);
+            }
+            if (other.CompareTag("Ally"))
+            {
+                other.GetComponent<Ally>().TakeDamage(30);
+            }
+            // if (other.CompareTag("Player"))
+            // {
+            //     other.GetComponent<Player>().TakeDamage(30);
+            // }
+        }
     }
 }
