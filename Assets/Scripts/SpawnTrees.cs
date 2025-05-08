@@ -34,8 +34,8 @@ public class SpawnTrees : MonoBehaviour
                     {
                         GameObject treeInstance = Instantiate(treePrefab, raycastHit.point, Quaternion.identity);
                         CapsuleCollider capsuleCollider = treeInstance.AddComponent<CapsuleCollider>();
-                        capsuleCollider.radius = 1f;
-                        capsuleCollider.center = new Vector3(0.5f, 5, -0.6f);
+                        capsuleCollider.radius = 0.2f;
+                        capsuleCollider.center = new Vector3(0.5f, 4, -0.6f);
 
                         GameObject cover = new GameObject();
                         cover.transform.position = treeInstance.transform.position;

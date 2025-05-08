@@ -32,8 +32,8 @@ public class BattleManager : MonoBehaviour
         numAlliesWorld = 0;
         numPlayersWorld = 1;
 
-        numEnemiesBattle = 1;
-        numAlliesBattle = 1;
+        numEnemiesBattle = 10;
+        numAlliesBattle = 10;
         numPlayersBattle = 1;
     }
 
@@ -45,7 +45,7 @@ public class BattleManager : MonoBehaviour
             ResetCharacters();
             SceneManager.LoadScene("WorldMap");
         }
-        else if (numPlayersBattle <= 0 && numAlliesBattle <= 0)
+        else if (numPlayersBattle <= 0)
         {
             SceneManager.LoadScene("GameOverScene");
         }
@@ -74,8 +74,8 @@ public class BattleManager : MonoBehaviour
 
     public void ResetCharacters()
     {
-        numEnemiesBattle = 1;
-        numAlliesBattle = 1;
+        numEnemiesBattle = 10;
+        numAlliesBattle = 10;
         numPlayersBattle = 1;
     }
 }

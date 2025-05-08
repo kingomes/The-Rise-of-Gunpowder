@@ -34,18 +34,19 @@ public class BulletProjectile : MonoBehaviour
 
         if (other.GetComponent<BulletTarget>() != null)
         {
+            int damage = Random.Range(20, 71);
             if (other.CompareTag("Enemy"))
             {
-                other.GetComponent<Enemy>().TakeDamage(30);
+                other.GetComponent<Enemy>().TakeDamage(damage);
             }
             if (other.CompareTag("Ally"))
             {
-                other.GetComponent<Ally>().TakeDamage(30);
+                other.GetComponent<Ally>().TakeDamage(damage);
             }
-            // if (other.CompareTag("Player"))
-            // {
-            //     other.GetComponent<Player>().TakeDamage(30);
-            // }
+            if (other.CompareTag("Player"))
+            {
+                other.GetComponent<Player>().TakeDamage(damage);
+            }
         }
     }
 }

@@ -1021,8 +1021,10 @@ MonoBehaviour:
   whatIsEnemy:
     serializedVersion: 2
     m_Bits: 512
-  health: 0
-  numAllies: 5
+  whatIsAlly:
+    serializedVersion: 2
+    m_Bits: 1024
+  battleManager: {fileID: 0}
 --- !u!136 &2928921715600700136
 CapsuleCollider:
   m_ObjectHideFlags: 0

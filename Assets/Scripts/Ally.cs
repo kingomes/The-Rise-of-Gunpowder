@@ -21,15 +21,16 @@ public class Ally : MonoBehaviour
     [SerializeField] private float searchRadius;
     [SerializeField] private LayerMask whatIsGround;
     [SerializeField] private LayerMask whatIsEnemy;
+    [SerializeField] private LayerMask whatIsAlly;
 
     private bool enemyInSightRange;
     private bool enemyInAttackRange;
+    private bool enemyInLineOfSight;
 
     private bool isInCover;
     private bool isPeeking;
 
     private float health;
-    [SerializeField] private BattleManager battleManager;
 
     void Start()
     {
@@ -40,7 +41,11 @@ public class Ally : MonoBehaviour
         
         timeBetweenAttacks = 3f;
         sightRange = 500f;
-        attackRange = 100f;
+        attackRange = 50f;
+
+        enemyInSightRange = false;
+        enemyInAttackRange = false;
+        enemyInLineOfSight = false;
 
         isInCover = false;
         isPeeking = false;
@@ -49,6 +54,7 @@ public class Ally : MonoBehaviour
 
         searchRadius = 400f;
 
+        StartCoroutine(UpdateClosestEnemy());
         StartCoroutine(CheckEnemyRanges());
     }
 
@@ -58,10 +64,31 @@ public class Ally : MonoBehaviour
         {
             if (enemy != null)
             {
+                Vector3 toEnemy = enemy.transform.position - this.transform.position;
+                if (Physics.Raycast(this.transform.position + Vector3.up * 1f, toEnemy.normalized, out RaycastHit hit, toEnemy.magnitude, whatIsEnemy))
+                {
+                    enemyInLineOfSight = true;
+                }
+                else
+                {
+                    enemyInLineOfSight = false;
+                }
+
                 enemyInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsEnemy);
-                enemyInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsEnemy);
+                
+                if (enemyInLineOfSight)
+                    enemyInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsEnemy);
             }
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.2f); // Reduce physics checks
+        }
+    }
+
+    private IEnumerator UpdateClosestEnemy()
+    {
+        while (true)
+        {
+            enemy = FindClosestEnemy();
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
@@ -73,12 +100,11 @@ public class Ally : MonoBehaviour
             BattleManager.Instance.ReduceNumAllies();
         }
 
-        enemy = FindClosestEnemy();
         if (enemy == null) return;
 
         if (enemyInSightRange && !enemyInAttackRange)
             ChaseEnemy();
-        else if (enemyInSightRange && enemyInAttackRange)
+        else if (enemyInSightRange && enemyInAttackRange && enemyInLineOfSight)
             AttackEnemy();
 
         if (isInCover)
@@ -96,30 +122,32 @@ public class Ally : MonoBehaviour
 
     private void AttackEnemy()
     {
-        agent.SetDestination(transform.position);
-        transform.LookAt(enemy.transform);
-
-        if (!alreadyAttacked)
+        if (!alreadyAttacked && !ShouldGuerilla())
         {
+            agent.SetDestination(transform.position);
+            transform.LookAt(enemy.transform);
             FireBullet();
-            alreadyAttacked = true;
-            Invoke(nameof(ResetAttack), timeBetweenAttacks);
+        }
+        else if (!alreadyAttacked && ShouldGuerilla())
+        {
+            FireAndRetreat();
+        }
+        else if (alreadyAttacked && ShouldGuerilla())
+        {
+            Relocate();
         }
         else
         {
-            if (currentCover == null)
-                currentCover = FindBestCover();
-
-            if (currentCover != null)
-                agent.SetDestination(currentCover.position);
         }
     }
 
     private void FireBullet()
     {
-        Vector3 aimDir = (enemy.transform.position - spawnBulletPosition.position).normalized;
+        Vector3 targetPosition = enemy.GetComponent<Collider>().bounds.center;
+        Vector3 aimDir = (targetPosition - spawnBulletPosition.position).normalized;
         Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
-        // Consider switching to object pooling here
+        alreadyAttacked = true;
+        Invoke(nameof(ResetAttack), timeBetweenAttacks);
     }
 
     private Transform FindBestCover()
@@ -132,13 +160,6 @@ public class Ally : MonoBehaviour
             Vector3 coverPos = cover.transform.position;
             Vector3 toCover = coverPos - transform.position;
             Vector3 toEnemy = enemy.transform.position - coverPos;
-
-            // skip if player can see this cover directly
-            if (Physics.Raycast(coverPos + Vector3.up * 1f, toEnemy.normalized, out RaycastHit hit, toEnemy.magnitude))
-            {
-                if (hit.collider.CompareTag("Enemy"))
-                    continue;
-            }
 
             // Score this cover point
             float distanceScore = -toCover.magnitude;  // Closer to ally
@@ -155,6 +176,7 @@ public class Ally : MonoBehaviour
 
         return bestCover;
     }
+
 
     private GameObject FindClosestEnemy()
     {
@@ -182,7 +204,9 @@ public class Ally : MonoBehaviour
         if (!isPeeking && !alreadyAttacked)
         {
             isPeeking = true;
+            alreadyAttacked = true;
             Invoke(nameof(PeekOutAndShoot), 2f);
+            Invoke(nameof(ResetPeek), timeBetweenAttacks + 2f);
         }
     }
 
@@ -191,19 +215,57 @@ public class Ally : MonoBehaviour
         if (enemy == null) return;
 
         transform.LookAt(enemy.transform);
-        Vector3 peekPos = transform.position + transform.right * 1f;
-        agent.SetDestination(peekPos);
-
+        Vector3 peekPosition = transform.position + transform.right * 1f;
+        agent.SetDestination(peekPosition);
         FireBullet();
-        Invoke(nameof(ReturnToCover), 1.5f);
+        isInCover = false;
     }
 
-    private void ReturnToCover()
+    private void FireAndRetreat()
     {
-        if (currentCover != null)
-            agent.SetDestination(currentCover.position);
+        FireBullet();
+        Vector3 retreatDirection = (transform.position - enemy.transform.position).normalized;
+        Vector3 retreatPosition = transform.position + retreatDirection * 10f;
 
-        Invoke(nameof(ResetPeek), 3f);
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(retreatPosition, out hit, 10f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+            isInCover = false;
+            currentCover = null;
+        }
+    }
+
+    private void StartRelocationTimer()
+    {
+        Invoke(nameof(Relocate), Random.Range(5f, 10f));
+    }
+
+    private void Relocate()
+    {
+        currentCover = FindBestCover();
+        if (currentCover != null)
+        {
+            // Move to the side of the cover opposite the enemy
+            Vector3 toEnemy = (enemy.transform.position - currentCover.position).normalized;
+            Vector3 behindCoverPos = currentCover.position - toEnemy * 2f;
+
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(behindCoverPos, out hit, 2f, NavMesh.AllAreas))
+            {
+                agent.SetDestination(hit.position);
+                isInCover = true;
+            }
+        }
+
+        StartRelocationTimer();
+    }
+
+
+    private bool ShouldGuerilla()
+    {
+        int alliesNearby = Physics.OverlapSphere(transform.position, 10f, whatIsAlly).Length;
+        return health < 50f && alliesNearby < 20;
     }
 
     private void ResetPeek()
@@ -219,5 +281,6 @@ public class Ally : MonoBehaviour
     public void TakeDamage(int damage)
     {
         health -= damage;
+        Debug.Log(gameObject.name + "was hit for " + damage + " damge");
     }
 }

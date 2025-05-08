@@ -75,6 +75,10 @@ public class Enemy : MonoBehaviour
         sightRange = 500f;
         attackRange = 50f;
 
+        playerInSightRange = false;
+        playerInAttackRange = false;
+        playerInLineOfSight = false;
+
         isInCover = false;
         isPeeking = false;
 
@@ -90,28 +94,30 @@ public class Enemy : MonoBehaviour
 
         coverPoints = GameObject.FindGameObjectsWithTag("CoverPoint");
 
-        StartCoroutine(CheckPlayerRanges());
         StartCoroutine(UpdateClosestPlayer());
+        StartCoroutine(CheckPlayerRanges());
     }
 
     private IEnumerator CheckPlayerRanges()
     {
         while (true)
         {
-            if (player != null && playerInSightRange)
+            if (player != null)
             {
-                playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer | whatIsAlly);
-                playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer | whatIsAlly);
-
                 Vector3 toPlayer = player.transform.position - this.transform.position;
                 if (Physics.Raycast(this.transform.position + Vector3.up * 1f, toPlayer.normalized, out RaycastHit hit, toPlayer.magnitude, whatIsPlayer | whatIsAlly))
                 {
-                        playerInLineOfSight = true;
+                    playerInLineOfSight = true;
                 }
                 else
                 {
                     playerInLineOfSight = false;
                 }
+                
+                playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer | whatIsAlly);
+
+                if (playerInLineOfSight)
+                    playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer | whatIsAlly);
             }
             yield return new WaitForSeconds(0.2f); // Reduce physics checks
         }
@@ -122,7 +128,7 @@ public class Enemy : MonoBehaviour
         while (true)
         {
             player = FindClosestPlayer();
-            yield return new WaitForSeconds(0.5f); // adjust based on need
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
@@ -139,7 +145,7 @@ public class Enemy : MonoBehaviour
 
         if (playerInSightRange && !playerInAttackRange)
             ChasePlayer();
-        else if (playerInSightRange && playerInAttackRange && playerInLineOfSight)
+        else if (playerInSightRange && playerInAttackRange)
             AttackPlayer();
 
         if (isInCover)
@@ -286,33 +292,27 @@ public class Enemy : MonoBehaviour
     {
         if (!alreadyAttacked && !ShouldGuerilla())
         {
+            agent.SetDestination(transform.position);
+            transform.LookAt(player.transform);
             FireBullet();
-            alreadyAttacked = true;
-            Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
         else if (!alreadyAttacked && ShouldGuerilla())
         {
             FireAndRetreat();
-            alreadyAttacked = true;
-            Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
         else if (alreadyAttacked && ShouldGuerilla())
         {
             Relocate();
         }
-        else
-        {
-            agent.SetDestination(transform.position);
-            transform.LookAt(player.transform);
-            FireBullet();
-            alreadyAttacked = true;
-        }
     }
 
     private void FireBullet()
     {
-        Vector3 aimDir = (player.transform.position - spawnBulletPosition.position).normalized;
+        Vector3 targetPosition = player.GetComponent<Collider>().bounds.center;
+        Vector3 aimDir = (targetPosition - spawnBulletPosition.position).normalized;
         Instantiate(bullet, spawnBulletPosition.position, Quaternion.LookRotation(aimDir, Vector3.up));
+        alreadyAttacked = true;
+        Invoke(nameof(ResetAttack), timeBetweenAttacks);
     }
 
     private Transform FindBestCover()
@@ -389,6 +389,7 @@ public class Enemy : MonoBehaviour
     private void FireAndRetreat()
     {
         FireBullet();
+
         Vector3 retreatDirection = (transform.position - player.transform.position).normalized;
         Vector3 retreatPosition = transform.position + retreatDirection * 10f;
 
@@ -430,7 +431,8 @@ public class Enemy : MonoBehaviour
     private bool ShouldGuerilla()
     {
         int alliesNearby = Physics.OverlapSphere(transform.position, 10f, whatIsEnemy).Length;
-        return health < 30f && alliesNearby < 2;
+        Debug.Log(alliesNearby);
+        return health < 50f && alliesNearby < 20;
     }
 
     private void ResetPeek()
@@ -446,5 +448,6 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(int damage)
     {
         health -= damage;
+        Debug.Log(gameObject.name + "was hit for " + damage + " damge");
     }
 }
