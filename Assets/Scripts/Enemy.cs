@@ -11,10 +11,18 @@ public class Enemy : MonoBehaviour
     private float mass;
     private float maxForce;
 
+    private float walkIntervalDuration;
+    private float walkIntervalTimer;
+
+    private float turnIntervalDuration;
+    private float turnIntervalTimer;
+
     private GameObject player;
 
     private float xOffset;
     private float yOffset;
+    private float xIncrement;
+    private float yIncrement;
 
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private float timeBetweenAttacks;
@@ -51,12 +59,16 @@ public class Enemy : MonoBehaviour
         this.transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[0].color = Color.red;
         this.transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[1].color = Color.red;
         this.transform.GetChild(2).GetChild(0).GetComponent<Renderer>().materials[2].color = Color.red;
+
         acceleration = Vector3.zero;
         velocity = Vector3.zero;
         maxSpeed = 2f;
         maxForce = 0.1f;
         mass = 1f;
-        player = null;
+        if (sceneName != "WorldMap")
+            player = null;
+        else
+            player = GameObject.FindGameObjectWithTag("Player");
         agent = GetComponent<NavMeshAgent>();
         
         timeBetweenAttacks = 3f;
@@ -65,6 +77,9 @@ public class Enemy : MonoBehaviour
 
         isInCover = false;
         isPeeking = false;
+
+        xOffset = Random.Range(-1000, 1000);
+        yOffset = Random.Range(-1000, 1000);
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
@@ -128,9 +143,10 @@ public class Enemy : MonoBehaviour
         if (sceneName == "WorldMap") agent.enabled = false;
         else agent.enabled = true;
 
-        if (sceneName != "WorldMap" || player == null) return;
+        if (sceneName != "WorldMap") return;
 
         ApplyBehaviors();
+        WrapAround();
         velocity += acceleration;
         velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
         transform.position += velocity;
@@ -145,81 +161,118 @@ public class Enemy : MonoBehaviour
 
     private void ApplyBehaviors()
     {
-        Vector3 seekForce = Seek();
-        seekForce.y = 0;
-        seekForce *= 0.5f;
+        if (player == null || Vector3.Distance(player.transform.position, transform.position) > 500f)
+        {
+            Wander();
+        }
+        else
+        {
+            Vector3 seekForce = Seek();
+            seekForce.y = 0;
+            ApplyForce(seekForce);
+        }
 
         collider = GetComponent<Collider>();
         Vector3 size = collider.bounds.size;
 
-        Physics.Raycast(this.transform.position + new Vector3(0, size.y / 2, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
+        Physics.Raycast(this.transform.position + new Vector3(0, size.y / 2, 0),
+            transform.TransformDirection(Vector3.down), out RaycastHit raycastHit,
+            float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
 
         this.transform.position = new Vector3(this.transform.position.x, raycastHit.point.y, this.transform.position.z);
-
-        this.ApplyForce(seekForce);
-
-        ApplyForce(seekForce);
     }
+
 
     private Vector3 Seek()
     {
+        if (player == null)
+            return Vector3.zero;
+
         Vector3 direction = Vector3.zero;
-        int count = 0;
         float neighborRadius = 500f;
 
         float distance = Vector3.Distance(player.transform.position, transform.position);
         if (distance < neighborRadius)
         {
-            direction += (player.transform.position - transform.position);
-            count++;
+            direction += player.transform.position - transform.position;
         }
 
-        foreach (Enemy boid in enemies)
-        {
-            if (boid == this) continue;
-            distance = Vector3.Distance(boid.transform.position, transform.position);
-            if (distance < neighborRadius)
-            {
-                direction += (boid.transform.position - transform.position);
-                count++;
-            }
-        }
-
-        if (count > 0)
-        {
-            direction.Normalize();
-            Vector3 desiredVelocity = direction * maxSpeed;
-            Vector3 steering = desiredVelocity - velocity;
-            return Vector3.ClampMagnitude(steering, maxForce);
-        }
-
-        Wander();
-        return Vector3.zero;
+        direction.Normalize();
+        Vector3 desiredVelocity = direction * maxSpeed;
+        Vector3 steering = desiredVelocity - velocity;
+        return Vector3.ClampMagnitude(steering, maxForce);
     }
 
     private void Wander()
     {
+        //reduce the time left on the timers
+        walkIntervalTimer -= Time.deltaTime;
+        turnIntervalTimer -= Time.deltaTime;
+
+        // perlin noise setup
         float perlinX = Mathf.PerlinNoise(xOffset, 0);
         float perlinY = Mathf.PerlinNoise(yOffset, 0);
-        float x = Mathf.Lerp(-maxSpeed, maxSpeed, perlinX);
-        float z = Mathf.Lerp(-maxSpeed, maxSpeed, perlinY);
-        xOffset += 0.01f;
-        yOffset += 0.01f;
-        velocity.x = x;
-        velocity.z = z;
+        float xVelocity = Unity.Mathematics.math.remap(0, 1, -this.maxSpeed, this.maxSpeed, perlinX);
+        float zVelocity = Unity.Mathematics.math.remap(0, 1, -this.maxSpeed, this.maxSpeed, perlinY);
+        
+        // change the speed of movement
+        if (walkIntervalTimer <= 0)
+        {
+            this.xIncrement = Random.Range(-0.01f, 0.01f);
+            this.yIncrement = Random.Range(-0.01f, 0.01f);
+            walkIntervalTimer = walkIntervalDuration;
+        }
+
+        // turn around
+        if (turnIntervalTimer <= 0)
+        {
+            this.xOffset *= -1;
+            this.yOffset *= -1;
+
+            // Bias toward center
+            Vector2 centerVelocity = Vector2.zero;
+            Vector2 offset = new Vector2(xOffset, yOffset);
+            offset = Vector2.SmoothDamp(offset, Vector2.zero, ref centerVelocity, 5f); // 5 sec to fully settle
+            xOffset = offset.x;
+            yOffset = offset.y;
+
+            turnIntervalTimer = turnIntervalDuration;
+        }
+
+        this.xOffset += this.xIncrement;
+        this.yOffset += this.yIncrement;
+        velocity.x = xVelocity;
+        velocity.z = zVelocity;
+    }
+
+    private void WrapAround()
+    {
+        if (this.transform.position.x > 1200)
+        {
+            this.transform.position = new Vector3(-1200, transform.position.y, transform.position.z);
+        }
+        if (this.transform.position.x < -1200)
+        {
+            this.transform.position = new Vector3(1200, transform.position.y, transform.position.z);
+        }
+        if (this.transform.position.z > 1200)
+        {
+            this.transform.position = new Vector3(transform.position.x, transform.position.y, -1200);
+        }
+        if (this.transform.position.z < -1200)
+        {
+            this.transform.position = new Vector3(transform.position.x, transform.position.y, 1200);
+        }
     }
 
     private void ChasePlayer()
     {
         if (Vector3.Distance(agent.destination, player.transform.position) > 1f)
-            agent.SetDestination(GetFlankPosition());
+            agent.SetDestination(player.transform.position);
     }
 
     private void AttackPlayer()
     {
-        agent.SetDestination(transform.position);
-        transform.LookAt(player.transform);
-
         if (!alreadyAttacked && !ShouldGuerilla())
         {
             FireBullet();
@@ -232,9 +285,16 @@ public class Enemy : MonoBehaviour
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
-        else
+        else if (alreadyAttacked && ShouldGuerilla())
         {
             Relocate();
+        }
+        else
+        {
+            agent.SetDestination(transform.position);
+            transform.LookAt(player.transform);
+            FireBullet();
+            alreadyAttacked = true;
         }
     }
 
@@ -254,13 +314,6 @@ public class Enemy : MonoBehaviour
             Vector3 coverPos = cover.transform.position;
             Vector3 toCover = coverPos - transform.position;
             Vector3 toPlayer = player.transform.position - coverPos;
-
-            // skip if player can see this cover directly
-            if (Physics.Raycast(coverPos + Vector3.up * 1f, toPlayer.normalized, out RaycastHit hit, toPlayer.magnitude))
-            {
-                if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Ally"))
-                    continue;
-            }
 
             // Score this cover point
             float distanceScore = -toCover.magnitude;  // Closer to enemy
@@ -305,7 +358,9 @@ public class Enemy : MonoBehaviour
         if (!isPeeking && !alreadyAttacked)
         {
             isPeeking = true;
+            alreadyAttacked = true;
             Invoke(nameof(PeekOutAndShoot), 2f);
+            Invoke(nameof(ResetPeek), timeBetweenAttacks + 2f);
         }
     }
 
@@ -335,13 +390,6 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private Vector3 GetFlankPosition()
-    {
-        Vector3 toPlayer = (player.transform.position - transform.position).normalized;
-        Vector3 flankDirection = Vector3.Cross(toPlayer, Vector3.up);
-        return player.transform.position + flankDirection * 5f;
-    }
-
     private void StartRelocationTimer()
     {
         Invoke(nameof(Relocate), Random.Range(5f, 10f));
@@ -351,10 +399,22 @@ public class Enemy : MonoBehaviour
     {
         currentCover = FindBestCover();
         if (currentCover != null)
-            agent.SetDestination(currentCover.position);
-            isInCover = true;
+        {
+            // Move to the side of the cover opposite the player
+            Vector3 toPlayer = (player.transform.position - currentCover.position).normalized;
+            Vector3 behindCoverPos = currentCover.position - toPlayer * 2f;
+
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(behindCoverPos, out hit, 2f, NavMesh.AllAreas))
+            {
+                agent.SetDestination(hit.position);
+                isInCover = true;
+            }
+        }
+
         StartRelocationTimer();
     }
+
 
     private bool ShouldGuerilla()
     {
