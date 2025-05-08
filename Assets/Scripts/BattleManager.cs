@@ -32,8 +32,8 @@ public class BattleManager : MonoBehaviour
         numAlliesWorld = 0;
         numPlayersWorld = 1;
 
-        numEnemiesBattle = 10;
-        numAlliesBattle = 10;
+        numEnemiesBattle = 50;
+        numAlliesBattle = 50;
         numPlayersBattle = 1;
     }
 
@@ -74,8 +74,8 @@ public class BattleManager : MonoBehaviour
 
     public void ResetCharacters()
     {
-        numEnemiesBattle = 10;
-        numAlliesBattle = 10;
+        numEnemiesBattle = 50;
+        numAlliesBattle = 50;
         numPlayersBattle = 1;
     }
 }

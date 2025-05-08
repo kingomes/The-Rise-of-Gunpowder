@@ -113,7 +113,7 @@ public class Enemy : MonoBehaviour
                 {
                     playerInLineOfSight = false;
                 }
-                
+
                 playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer | whatIsAlly);
 
                 if (playerInLineOfSight)
@@ -284,6 +284,8 @@ public class Enemy : MonoBehaviour
 
     private void ChasePlayer()
     {
+        if (player == null) return;
+
         if (Vector3.Distance(agent.destination, player.transform.position) > 1f)
             agent.SetDestination(player.transform.position);
     }
@@ -324,11 +326,9 @@ public class Enemy : MonoBehaviour
         {
             Vector3 coverPos = cover.transform.position;
             Vector3 toCover = coverPos - transform.position;
-            Vector3 toPlayer = player.transform.position - coverPos;
 
-            // Score this cover point
-            float distanceScore = -toCover.magnitude;  // Closer to enemy
-            float safetyScore = toPlayer.magnitude;    // Farther from player
+            float distanceScore = -toCover.magnitude;
+            float safetyScore = player != null ? Vector3.Distance(player.transform.position, coverPos) : 0;
 
             float totalScore = distanceScore + safetyScore;
 
@@ -341,6 +341,7 @@ public class Enemy : MonoBehaviour
 
         return bestCover;
     }
+
 
 
     private GameObject FindClosestPlayer()
@@ -394,7 +395,7 @@ public class Enemy : MonoBehaviour
         Vector3 retreatPosition = transform.position + retreatDirection * 10f;
 
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(retreatPosition, out hit, 10f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(retreatPosition, out hit, 100f, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
             isInCover = false;
@@ -431,7 +432,6 @@ public class Enemy : MonoBehaviour
     private bool ShouldGuerilla()
     {
         int alliesNearby = Physics.OverlapSphere(transform.position, 10f, whatIsEnemy).Length;
-        Debug.Log(alliesNearby);
         return health < 50f && alliesNearby < 20;
     }
 

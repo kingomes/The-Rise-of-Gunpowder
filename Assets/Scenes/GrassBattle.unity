@@ -223,7 +223,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &181000807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2164,12 +2164,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da789afb13ee85e4680be196776877c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
-  panSpeed: 0.5
-  zoomSpeed: 5
-  rotationSpeed: 3
-  minZoom: 5
-  maxZoom: 50
 --- !u!1 &1788910518
 GameObject:
   m_ObjectHideFlags: 0

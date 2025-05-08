@@ -75,7 +75,7 @@ public class Ally : MonoBehaviour
                 }
 
                 enemyInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsEnemy);
-                
+
                 if (enemyInLineOfSight)
                     enemyInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsEnemy);
             }
@@ -136,9 +136,6 @@ public class Ally : MonoBehaviour
         {
             Relocate();
         }
-        else
-        {
-        }
     }
 
     private void FireBullet()
@@ -159,11 +156,9 @@ public class Ally : MonoBehaviour
         {
             Vector3 coverPos = cover.transform.position;
             Vector3 toCover = coverPos - transform.position;
-            Vector3 toEnemy = enemy.transform.position - coverPos;
 
-            // Score this cover point
-            float distanceScore = -toCover.magnitude;  // Closer to ally
-            float safetyScore = toEnemy.magnitude;    // Farther from enemy
+            float distanceScore = -toCover.magnitude;
+            float safetyScore = enemy != null ? Vector3.Distance(enemy.transform.position, coverPos) : 0;
 
             float totalScore = distanceScore + safetyScore;
 
@@ -176,6 +171,7 @@ public class Ally : MonoBehaviour
 
         return bestCover;
     }
+
 
 
     private GameObject FindClosestEnemy()
@@ -228,7 +224,7 @@ public class Ally : MonoBehaviour
         Vector3 retreatPosition = transform.position + retreatDirection * 10f;
 
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(retreatPosition, out hit, 10f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(retreatPosition, out hit, 100f, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
             isInCover = false;
