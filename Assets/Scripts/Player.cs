@@ -41,7 +41,7 @@ public class Player : MonoBehaviour
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
-        
+
         health = 100f;
 
         mapGenerator = GameObject.FindAnyObjectByType<MapGenerator>();
@@ -159,5 +159,10 @@ public class Player : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health -= damage;
+    }
+
+    public float GetHealth()
+    {
+        return health;
     }
 }

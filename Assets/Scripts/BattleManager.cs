@@ -47,7 +47,12 @@ public class BattleManager : MonoBehaviour
         }
         else if (numPlayersBattle <= 0 && numAlliesBattle <= 0)
         {
-            Debug.Log("Game over!");
+            SceneManager.LoadScene("GameOverScene");
+        }
+
+        if (numEnemiesWorld <= 0)
+        {
+            SceneManager.LoadScene("WinScene");
         }
     }
 

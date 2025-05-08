@@ -91,29 +91,41 @@ public class Enemy : MonoBehaviour
         coverPoints = GameObject.FindGameObjectsWithTag("CoverPoint");
 
         StartCoroutine(CheckPlayerRanges());
+        StartCoroutine(UpdateClosestPlayer());
     }
 
     private IEnumerator CheckPlayerRanges()
     {
         while (true)
         {
-            if (player != null)
+            if (player != null && playerInSightRange)
             {
                 playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer | whatIsAlly);
                 playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer | whatIsAlly);
 
                 Vector3 toPlayer = player.transform.position - this.transform.position;
-                if (Physics.Raycast(this.transform.position + Vector3.up * 1f, toPlayer.normalized, out RaycastHit hit, toPlayer.magnitude))
+                if (Physics.Raycast(this.transform.position + Vector3.up * 1f, toPlayer.normalized, out RaycastHit hit, toPlayer.magnitude, whatIsPlayer | whatIsAlly))
                 {
-                    if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Ally"))
                         playerInLineOfSight = true;
-                    else
-                        playerInLineOfSight = false;
+                }
+                else
+                {
+                    playerInLineOfSight = false;
                 }
             }
             yield return new WaitForSeconds(0.2f); // Reduce physics checks
         }
     }
+
+    private IEnumerator UpdateClosestPlayer()
+    {
+        while (true)
+        {
+            player = FindClosestPlayer();
+            yield return new WaitForSeconds(0.5f); // adjust based on need
+        }
+    }
+
 
     private void Update()
     {
@@ -123,7 +135,6 @@ public class Enemy : MonoBehaviour
             BattleManager.Instance.ReduceNumEnemies();
         }
 
-        player = FindClosestPlayer();
         if (player == null || sceneName == "WorldMap") return;
 
         if (playerInSightRange && !playerInAttackRange)
