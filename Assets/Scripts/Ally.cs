@@ -38,7 +38,7 @@ public class Ally : MonoBehaviour
 
         enemy = null;
         
-        timeBetweenAttacks = 10f;
+        timeBetweenAttacks = 3f;
         sightRange = 500f;
         attackRange = 100f;
 
@@ -48,8 +48,6 @@ public class Ally : MonoBehaviour
         health = 100f;
 
         searchRadius = 400f;
-
-        battleManager = GameObject.FindAnyObjectByType<BattleManager>();
 
         StartCoroutine(CheckEnemyRanges());
     }
@@ -72,7 +70,7 @@ public class Ally : MonoBehaviour
         if (health <= 0)
         {
             Destroy(gameObject);
-            battleManager.reduceNumAllies();
+            BattleManager.Instance.ReduceNumAllies();
         }
 
         enemy = FindClosestEnemy();

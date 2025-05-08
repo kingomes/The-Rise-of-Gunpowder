@@ -3,46 +3,74 @@ using UnityEngine.SceneManagement;
 
 public class BattleManager : MonoBehaviour
 {
-    private int numAllies;
-    private int numEnemies;
-    private int numPlayers;
+    public static BattleManager Instance;
+    public int numAlliesWorld;
+    public int numEnemiesWorld;
+    public int numPlayersWorld;
 
-    [SerializeField] private Spawner spawner;
+    public int numAlliesBattle;
+    public int numEnemiesBattle;
+    public int numPlayersBattle;
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        numEnemies = spawner.getNumEnemies();
-        numAllies = spawner.getNumAllies();
-        numPlayers = spawner.getNumPlayers();
+        numEnemiesWorld = 3;
+        numAlliesWorld = 0;
+        numPlayersWorld = 1;
+
+        numEnemiesBattle = 1;
+        numAlliesBattle = 1;
+        numPlayersBattle = 1;
     }
 
     void Update()
     {
-        if (numEnemies <= 0)
+        if (numEnemiesBattle <= 0)
         {
+            Instance.numEnemiesWorld--;
+            ResetCharacters();
             SceneManager.LoadScene("WorldMap");
-            spawner.reduceNumEnemies();
         }
-        else if (numPlayers <= 0 && numAllies <= 0)
+        else if (numPlayersBattle <= 0 && numAlliesBattle <= 0)
         {
             Debug.Log("Game over!");
         }
     }
 
     // reduce the number of each when one dies to keep track of who's winning
-    public void reduceNumEnemies()
+    public void ReduceNumEnemies()
     {
-        numEnemies--;
+        numEnemiesBattle--;
     }
 
-    public void reduceNumAllies()
+    public void ReduceNumAllies()
     {
-        numAllies--;
+        numAlliesBattle--;
     }
 
-    public void reduceNumPlayers()
+    public void ReduceNumPlayers()
     {
-        numPlayers--;
+        numPlayersBattle--;
+    }
+
+    public void ResetCharacters()
+    {
+        numEnemiesBattle = 1;
+        numAlliesBattle = 1;
+        numPlayersBattle = 1;
     }
 }

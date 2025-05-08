@@ -40,6 +40,14 @@ public class Spawner : MonoBehaviour
             enemyPrefab.transform.localScale = new Vector3(20f, 20f, 20f);
             playerPrefab.transform.localScale = new Vector3(20f, 20f, 20f);
 
+            Debug.Log(BattleManager.Instance);
+            enemySpawnNumber = BattleManager.Instance.numEnemiesWorld;
+            Debug.Log(enemySpawnNumber);
+            allySpawnNumber = BattleManager.Instance.numAlliesWorld;
+            Debug.Log(allySpawnNumber);
+            playerSpawnNumber = BattleManager.Instance.numPlayersWorld;
+            Debug.Log(playerSpawnNumber);
+
             SpawnEnemies();
             SpawnPlayer();
         }
@@ -48,29 +56,15 @@ public class Spawner : MonoBehaviour
             negativePosition = new Vector2(-400f, -400f);
             positivePosition = new Vector2(400f, 400f);
 
+            enemySpawnNumber = BattleManager.Instance.numEnemiesBattle;
+            Debug.Log(enemySpawnNumber);
+            allySpawnNumber = BattleManager.Instance.numAlliesBattle;
+            Debug.Log(allySpawnNumber);
+            playerSpawnNumber = BattleManager.Instance.numPlayersBattle;
+            Debug.Log(playerSpawnNumber);
+
             SpawnCharactersForBattle();
         }
-    }
-
-    // getter methods
-    public int getNumEnemies()
-    {
-        return this.enemySpawnNumber;
-    }
-
-    public int getNumAllies()
-    {
-        return this.allySpawnNumber;
-    }
-
-    public int getNumPlayers()
-    {
-        return this.playerSpawnNumber;
-    }
-
-    public void reduceNumEnemies()
-    {
-        this.enemySpawnNumber--;
     }
 
     void SpawnEnemies()

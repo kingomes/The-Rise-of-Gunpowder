@@ -2297,7 +2297,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 6.38, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 20, y: 20, z: 20}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8243878091640030656}
@@ -2391,9 +2391,8 @@ MonoBehaviour:
   target: {fileID: 0}
   normalPoint: {fileID: 0}
   lookAheadDistance: 0
-  vehicles: []
   mapGenerator: {fileID: 0}
-  numAllies: 0
+  battleManager: {fileID: 0}
 --- !u!114 &8785030007815737630
 MonoBehaviour:
   m_ObjectHideFlags: 0

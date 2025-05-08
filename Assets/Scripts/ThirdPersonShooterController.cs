@@ -1,6 +1,8 @@
 using UnityEngine;
 using Unity.Cinemachine;
 using StarterAssets;
+using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class ThirdPersonShooterController : MonoBehaviour
 {
@@ -21,6 +23,7 @@ public class ThirdPersonShooterController : MonoBehaviour
     private bool alreadyAttacked;
     private float timeBetweenAttacks;
 
+
     private void Awake()
     {
         starterAssetsInputs = GetComponent<StarterAssetsInputs>();
@@ -36,7 +39,7 @@ public class ThirdPersonShooterController : MonoBehaviour
         spawnBulletPosition.localPosition = new Vector3(0.21f, 1.38f, 0.42f);
 
         alreadyAttacked = false;
-        timeBetweenAttacks = 10f;
+        timeBetweenAttacks = 3f;
     }
 
     private void Update()
@@ -79,7 +82,7 @@ public class ThirdPersonShooterController : MonoBehaviour
             animator.SetLayerWeight(1, Mathf.Lerp(animator.GetLayerWeight(1), 0f, Time.deltaTime * 10f));
         }
 
-        if (starterAssetsInputs.shoot /* && !alreadyAttacked*/)
+        if (starterAssetsInputs.shoot && !alreadyAttacked)
         {
             // if (hitTransform.GetComponent<BulletTarget>() != null)
             // {

@@ -41,11 +41,10 @@ public class Player : MonoBehaviour
 
         Scene currentScene = SceneManager.GetActiveScene();
         sceneName = currentScene.name;
+        
         health = 100f;
 
         mapGenerator = GameObject.FindAnyObjectByType<MapGenerator>();
-
-        battleManager = GameObject.FindAnyObjectByType<BattleManager>();
     }
 
     void Update()
@@ -53,46 +52,46 @@ public class Player : MonoBehaviour
         if (health <= 0)
         {
             Destroy(gameObject);
-            battleManager.reduceNumPlayers();
+            BattleManager.Instance.ReduceNumPlayers();
         }
         
         if (Input.GetMouseButtonDown(1) && sceneName == "WorldMap")
         {
-            shouldMove = false;
+            ///shouldMove = false;
             targetPosition = MouseWorld.GetPosition();
+            shouldMove = true;
+            // Ray ray = Camera.main.ScreenPointToRay(targetPosition);
+            // Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
 
-            Ray ray = Camera.main.ScreenPointToRay(targetPosition);
-            Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
+            // Renderer rend = raycastHit.transform.GetComponent<Renderer>();
+            // MeshCollider meshCollider = raycastHit.collider as MeshCollider;
 
-            Renderer rend = raycastHit.transform.GetComponent<Renderer>();
-            MeshCollider meshCollider = raycastHit.collider as MeshCollider;
+            // if (rend == null || rend.sharedMaterial == null || rend.sharedMaterial.mainTexture == null || meshCollider == null)
+            //     return;
 
-            if (rend == null || rend.sharedMaterial == null || rend.sharedMaterial.mainTexture == null || meshCollider == null)
-                return;
+            // Texture2D tex = rend.material.mainTexture as Texture2D;
 
-            Texture2D tex = rend.material.mainTexture as Texture2D;
+            // Vector2 pixelUV = raycastHit.textureCoord;
+            // pixelUV.x *= tex.width;
+            // pixelUV.y *= tex.height;
+            // Color colorAtRayCast = tex.GetPixel((int) pixelUV.x, (int) pixelUV.y);
 
-            Vector2 pixelUV = raycastHit.textureCoord;
-            pixelUV.x *= tex.width;
-            pixelUV.y *= tex.height;
-            Color colorAtRayCast = tex.GetPixel((int) pixelUV.x, (int) pixelUV.y);
-
-            float colorTolerance = 0.1f;
-            foreach (TerrainType region in mapGenerator.regions)
-            {
-                if (region.name == "Grass" || region.name == "Grass 2" || region.name == "Sand")
-                {
-                    if (Mathf.Abs(colorAtRayCast.r - region.color.r) < colorTolerance && Mathf.Abs(colorAtRayCast.g - region.color.g) < colorTolerance && Mathf.Abs(colorAtRayCast.b - region.color.b) < colorTolerance)
-                    {
-                        shouldMove = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    shouldMove = false;
-                }
-            }
+            // float colorTolerance = 0.1f;
+            // foreach (TerrainType region in mapGenerator.regions)
+            // {
+            //     if (region.name == "Grass" || region.name == "Grass 2" || region.name == "Sand")
+            //     {
+            //         if (Mathf.Abs(colorAtRayCast.r - region.color.r) < colorTolerance && Mathf.Abs(colorAtRayCast.g - region.color.g) < colorTolerance && Mathf.Abs(colorAtRayCast.b - region.color.b) < colorTolerance)
+            //         {
+            //             shouldMove = true;
+            //             break;
+            //         }
+            //     }
+            //     else
+            //     {
+            //         shouldMove = false;
+            //     }
+            // }
         }
     }
 
@@ -157,8 +156,8 @@ public class Player : MonoBehaviour
         return steeringForce;
     }
 
-    // public void TakeDamage(float damage)
-    // {
-    //     health -= damage;
-    // }
+    public void TakeDamage(float damage)
+    {
+        health -= damage;
+    }
 }

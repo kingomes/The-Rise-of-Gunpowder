@@ -31,17 +31,20 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float searchRadius;
     [SerializeField] private LayerMask whatIsPlayer;
     [SerializeField] private LayerMask whatIsAlly;
+    [SerializeField] private LayerMask whatIsEnemy;
 
     private bool playerInSightRange;
     private bool playerInAttackRange;
+    private bool playerInLineOfSight;
 
     private GameObject[] coverPoints;
     private string sceneName;
 
+    private Collider collider;
+
     [SerializeField] private Enemy[] enemies;
 
     private float health;
-    [SerializeField] private BattleManager battleManager;
 
     void Start()
     {
@@ -56,9 +59,9 @@ public class Enemy : MonoBehaviour
         player = null;
         agent = GetComponent<NavMeshAgent>();
         
-        timeBetweenAttacks = 10f;
+        timeBetweenAttacks = 3f;
         sightRange = 500f;
-        attackRange = 100f;
+        attackRange = 50f;
 
         isInCover = false;
         isPeeking = false;
@@ -72,8 +75,6 @@ public class Enemy : MonoBehaviour
 
         coverPoints = GameObject.FindGameObjectsWithTag("CoverPoint");
 
-        battleManager = GameObject.FindAnyObjectByType<BattleManager>();
-
         StartCoroutine(CheckPlayerRanges());
     }
 
@@ -85,6 +86,15 @@ public class Enemy : MonoBehaviour
             {
                 playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer | whatIsAlly);
                 playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer | whatIsAlly);
+
+                Vector3 toPlayer = player.transform.position - this.transform.position;
+                if (Physics.Raycast(this.transform.position + Vector3.up * 1f, toPlayer.normalized, out RaycastHit hit, toPlayer.magnitude))
+                {
+                    if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Ally"))
+                        playerInLineOfSight = true;
+                    else
+                        playerInLineOfSight = false;
+                }
             }
             yield return new WaitForSeconds(0.2f); // Reduce physics checks
         }
@@ -95,7 +105,7 @@ public class Enemy : MonoBehaviour
         if (health <= 0)
         {
             Destroy(gameObject);
-            battleManager.reduceNumEnemies();
+            BattleManager.Instance.ReduceNumEnemies();
         }
 
         player = FindClosestPlayer();
@@ -103,11 +113,11 @@ public class Enemy : MonoBehaviour
 
         if (playerInSightRange && !playerInAttackRange)
             ChasePlayer();
-        else if (playerInSightRange && playerInAttackRange)
+        else if (playerInSightRange && playerInAttackRange && playerInLineOfSight)
             AttackPlayer();
 
         if (isInCover)
-            PeekAndShoot();
+           PeekAndShoot();
 
         if (agent.remainingDistance <= agent.stoppingDistance && currentCover != null)
             isInCover = true;
@@ -115,6 +125,9 @@ public class Enemy : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (sceneName == "WorldMap") agent.enabled = false;
+        else agent.enabled = true;
+
         if (sceneName != "WorldMap" || player == null) return;
 
         ApplyBehaviors();
@@ -135,6 +148,16 @@ public class Enemy : MonoBehaviour
         Vector3 seekForce = Seek();
         seekForce.y = 0;
         seekForce *= 0.5f;
+
+        collider = GetComponent<Collider>();
+        Vector3 size = collider.bounds.size;
+
+        Physics.Raycast(this.transform.position + new Vector3(0, size.y / 2, 0), transform.TransformDirection(Vector3.down), out RaycastHit raycastHit, float.MaxValue, MouseWorld.GetInstance().GetLayerMask());
+
+        this.transform.position = new Vector3(this.transform.position.x, raycastHit.point.y, this.transform.position.z);
+
+        this.ApplyForce(seekForce);
+
         ApplyForce(seekForce);
     }
 
@@ -189,7 +212,7 @@ public class Enemy : MonoBehaviour
     private void ChasePlayer()
     {
         if (Vector3.Distance(agent.destination, player.transform.position) > 1f)
-            agent.SetDestination(player.transform.position);
+            agent.SetDestination(GetFlankPosition());
     }
 
     private void AttackPlayer()
@@ -197,19 +220,21 @@ public class Enemy : MonoBehaviour
         agent.SetDestination(transform.position);
         transform.LookAt(player.transform);
 
-        if (!alreadyAttacked)
+        if (!alreadyAttacked && !ShouldGuerilla())
         {
             FireBullet();
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
+        else if (!alreadyAttacked && ShouldGuerilla())
+        {
+            FireAndRetreat();
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttacks);
+        }
         else
         {
-            if (currentCover == null)
-                currentCover = FindBestCover();
-
-            if (currentCover != null)
-                agent.SetDestination(currentCover.position);
+            Relocate();
         }
     }
 
@@ -292,14 +317,49 @@ public class Enemy : MonoBehaviour
         Vector3 peekPosition = transform.position + transform.right * 1f;
         agent.SetDestination(peekPosition);
         FireBullet();
-        Invoke(nameof(ReturnToCover), 1.5f);
+        isInCover = false;
     }
 
-    private void ReturnToCover()
+    private void FireAndRetreat()
     {
+        FireBullet();
+        Vector3 retreatDirection = (transform.position - player.transform.position).normalized;
+        Vector3 retreatPosition = transform.position + retreatDirection * 10f;
+
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(retreatPosition, out hit, 10f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+            isInCover = false;
+            currentCover = null;
+        }
+    }
+
+    private Vector3 GetFlankPosition()
+    {
+        Vector3 toPlayer = (player.transform.position - transform.position).normalized;
+        Vector3 flankDirection = Vector3.Cross(toPlayer, Vector3.up);
+        return player.transform.position + flankDirection * 5f;
+    }
+
+    private void StartRelocationTimer()
+    {
+        Invoke(nameof(Relocate), Random.Range(5f, 10f));
+    }
+
+    private void Relocate()
+    {
+        currentCover = FindBestCover();
         if (currentCover != null)
             agent.SetDestination(currentCover.position);
-        Invoke(nameof(ResetPeek), 3f);
+            isInCover = true;
+        StartRelocationTimer();
+    }
+
+    private bool ShouldGuerilla()
+    {
+        int alliesNearby = Physics.OverlapSphere(transform.position, 10f, whatIsEnemy).Length;
+        return health < 30f && alliesNearby < 2;
     }
 
     private void ResetPeek()
